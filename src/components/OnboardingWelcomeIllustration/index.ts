@@ -1,0 +1,1 @@
+export {OnboardingWelcomeIllustration} from './OnboardingWelcomeIllustration';

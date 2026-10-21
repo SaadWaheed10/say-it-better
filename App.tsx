@@ -1,8 +1,12 @@
 import React from 'react';
 import {StatusBar} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {PixelFlowProvider, configure} from 'react-native-pixelflow';
 import {ThemeProvider, useAppTheme} from './src/hooks/useAppTheme';
 import {RootNavigator} from './src/navigation/RootNavigator';
+
+// Match the SayItBetter design frame for hybrid scaling.
+configure({figma: 'iPhone 14'});
 
 function AppShell() {
   const {isDark} = useAppTheme();
@@ -18,9 +22,11 @@ function AppShell() {
 function App() {
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
-        <AppShell />
-      </ThemeProvider>
+      <PixelFlowProvider followSystem>
+        <ThemeProvider>
+          <AppShell />
+        </ThemeProvider>
+      </PixelFlowProvider>
     </SafeAreaProvider>
   );
 }

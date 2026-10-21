@@ -9,6 +9,7 @@ React Native CLI (0.88) + TypeScript app that rewrites messages on-device with `
 - Results with clipboard copy
 - History + Settings (local AsyncStorage)
 - Offline AI via `llama.rn` (no cloud AI API)
+- Responsive layout via [`react-native-pixelflow`](https://www.npmjs.com/package/react-native-pixelflow) (`usePixelSheet` / per-screen `*.styles.ts`)
 
 ## Design
 

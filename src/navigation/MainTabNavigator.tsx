@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {Text, View} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Svg, {Circle, Path, Rect} from 'react-native-svg';
 import {useAppTheme} from '../hooks/useAppTheme';
@@ -7,6 +7,7 @@ import {HistoryScreen} from '../screens/HistoryScreen';
 import {HomeScreen} from '../screens/HomeScreen';
 import {SettingsScreen} from '../screens/SettingsScreen';
 import {MainTabParamList} from '../types';
+import {useMainTabNavigatorStyles} from './MainTabNavigator.styles';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -73,6 +74,7 @@ function routeIconName(routeName: string): 'home' | 'history' | 'settings' {
 
 export function MainTabNavigator() {
   const {colors, typography} = useAppTheme();
+  const styles = useMainTabNavigatorStyles();
 
   const screenOptions = useMemo(
     () =>
@@ -80,13 +82,13 @@ export function MainTabNavigator() {
         headerShown: false,
         tabBarActiveTintColor: colors.primaryNavy,
         tabBarInactiveTintColor: colors.tabInactive,
-        tabBarStyle: {
-          backgroundColor: colors.background,
-          borderTopColor: colors.border,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
+        tabBarStyle: [
+          styles.tabBar,
+          {
+            backgroundColor: colors.background,
+            borderTopColor: colors.border,
+          },
+        ],
         tabBarLabel: ({color}: {color: string}) => (
           <Text style={[typography.caption, styles.label, {color}]}>
             {route.name}
@@ -98,7 +100,7 @@ export function MainTabNavigator() {
           </View>
         ),
       }),
-    [colors, typography],
+    [colors, typography, styles],
   );
 
   return (
@@ -110,12 +112,3 @@ export function MainTabNavigator() {
   );
 }
 
-const styles = StyleSheet.create({
-  iconWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  label: {
-    fontWeight: '600',
-  },
-});

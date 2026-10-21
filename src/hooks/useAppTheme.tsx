@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import {useColorScheme} from 'react-native';
 import {createTheme, AppTheme, ThemeMode} from '../theme';
+import {useResponsiveThemeTokens} from '../theme/useResponsiveThemeTokens';
 import {getSettings, saveSettings} from '../services/settingsService';
 
 type ThemeContextValue = AppTheme & {
@@ -18,6 +19,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({children}: {children: React.ReactNode}) {
   const systemScheme = useColorScheme();
+  const {typography, spacing, radii} = useResponsiveThemeTokens();
   const [themePreference, setThemePreferenceState] =
     useState<ThemeMode>('light');
   const [ready, setReady] = useState(false);
@@ -47,7 +49,15 @@ export function ThemeProvider({children}: {children: React.ReactNode}) {
     return themePreference === 'dark';
   }, [themePreference, systemScheme]);
 
-  const theme = useMemo(() => createTheme(isDark), [isDark]);
+  const theme = useMemo(() => {
+    const base = createTheme(isDark);
+    return {
+      ...base,
+      typography,
+      spacing,
+      radii,
+    };
+  }, [isDark, typography, spacing, radii]);
 
   const setThemePreference = async (mode: ThemeMode) => {
     setThemePreferenceState(mode);
