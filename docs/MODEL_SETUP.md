@@ -1,55 +1,56 @@
 # Local model setup (SmolLM2 GGUF)
 
-SayItBetter runs inference on-device with `llama.rn`. It does **not** call a cloud AI API.
+SayItBetter runs inference on-device with [`llama.rn`](https://github.com/mybigday/llama.rn). It does **not** call a cloud AI API.
 
-## Model file
+`llama.rn` already provides a New Architecture / Turbo Native Module (`RNLlamaSpec`). We do **not** need a custom Turbo Module for model loading — see the official [Turbo Native Modules guide](https://reactnative.dev/docs/turbo-native-modules-introduction) only if you add new native APIs later.
 
-- File: `SmolLM2-360M-Instruct.Q4_K_M.gguf`
-- Project symlink (for reference only): `models/SmolLM2-360M-Instruct.Q4_K_M.gguf`
-- Source on this machine: `~/Downloads/SmolLM2-360M-Instruct.Q4_K_M.gguf`
+## Recommended: bundle into the app (for APK / IPA testing)
 
-The app looks for the file in the **app Documents directory**, not at a hardcoded macOS path.
-
-## iOS Simulator
-
-After installing the app once, copy the model into the simulator Documents folder:
+This is the path you want when sharing a build with testers.
 
 ```bash
-# Find the app container (adjust if needed)
-xcrun simctl get_app_container booted com.sayitbetter data
-
-# Then copy (replace DATA_PATH with the printed path)
-cp ~/Downloads/SmolLM2-360M-Instruct.Q4_K_M.gguf \
-  "$DATA_PATH/Documents/SmolLM2-360M-Instruct.Q4_K_M.gguf"
+cd ~/Desktop/SayItBetter
+npm run bundle-model    # once on your machine (copies ~258MB into native assets)
+npm run android         # or build a release APK
 ```
 
-Or use the helper:
+What this does:
+
+1. Copies `SmolLM2-360M-Instruct.Q4_K_M.gguf` into:
+   - `android/app/src/main/assets/models/`
+   - `ios/SayItBetter/Resources/`
+2. On first launch, the app extracts the file into app Documents storage automatically.
+3. Testers who install your APK/IPA **do not** run any copy commands.
+
+### Release APK
 
 ```bash
-npm run copy-model:ios
+npm run android:release
+# output: android/app/build/outputs/apk/release/app-release.apk
 ```
 
-## Android emulator / device
+Note: the APK will be large (~260MB+) because the model is inside it.
+
+### Git
+
+The `.gguf` files are **gitignored** (too large for GitHub). After cloning:
 
 ```bash
-adb shell mkdir -p /data/local/tmp
-adb push ~/Downloads/SmolLM2-360M-Instruct.Q4_K_M.gguf /data/local/tmp/
-adb shell run-as com.sayitbetter mkdir -p files
-adb shell run-as com.sayitbetter cp /data/local/tmp/SmolLM2-360M-Instruct.Q4_K_M.gguf files/
+npm run bundle-model
 ```
 
-Or:
+before building.
+
+## Optional fallback: adb / simulator copy
+
+Still available if you are not bundling:
 
 ```bash
 npm run copy-model:android
+npm run copy-model:ios
 ```
 
-## Custom path
+## Model file
 
-You can store an override path with AsyncStorage key `sayitbetter_model_path` (file URI or absolute path). Prefer Documents placement for portable builds.
-
-## Notes
-
-- Do not commit the GGUF (~270MB) to git.
-- First load can take several seconds on device.
-- If the model is missing, the app still opens; Settings shows the real status.
+- Name: `SmolLM2-360M-Instruct.Q4_K_M.gguf`
+- Default source: `~/Downloads/...` or `models/` symlink in the project

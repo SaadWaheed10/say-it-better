@@ -1,21 +1,19 @@
 import {Platform} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import RNFS from 'react-native-fs';
 import {STORAGE_KEYS} from '../constants/storage';
 
 /**
- * Bundled / expected filename for the local GGUF model.
- * Place this file in the app Documents directory (see docs/MODEL_SETUP.md).
+ * Bundled GGUF filename.
+ * Android: android/app/src/main/assets/models/<file>
+ * iOS: ios/SayItBetter/Resources/<file> (Copy Bundle Resources)
  */
 export const MODEL_FILENAME = 'SmolLM2-360M-Instruct.Q4_K_M.gguf';
 
-/**
- * Optional absolute path override for local development only.
- * Prefer Documents-directory placement over hardcoding machine paths.
- */
-const DEV_MODEL_CANDIDATES: string[] = [
-  // Project symlink / models folder (macOS Simulator / desktop debugging)
-  // These are checked only when a Documents copy is missing.
-];
+/** Relative Android asset path (inside src/main/assets). */
+export const ANDROID_ASSET_MODEL_PATH = `models/${MODEL_FILENAME}`;
+
+const DEV_MODEL_CANDIDATES: string[] = [];
 
 export async function getStoredModelPathOverride(): Promise<string | null> {
   try {
@@ -50,16 +48,16 @@ export function stripFileUri(path: string): string {
   return path.replace(/^file:\/\//, '');
 }
 
+export function getRuntimeModelPath(): string {
+  return `${RNFS.DocumentDirectoryPath.replace(/\/$/, '')}/${MODEL_FILENAME}`;
+}
+
 type ModelPathRoots = {
   documentDirectoryPath?: string | null;
   cachesDirectoryPath?: string | null;
   externalDirectoryPath?: string | null;
 };
 
-/**
- * Candidate absolute paths for the GGUF file on iOS and Android.
- * Prefer app-private Documents/files directories (see docs/MODEL_SETUP.md).
- */
 export function buildModelPathCandidates(
   roots: ModelPathRoots | string | null,
   overridePath?: string | null,
@@ -86,7 +84,6 @@ export function buildModelPathCandidates(
     candidates.push(`${base}/models/${MODEL_FILENAME}`);
   }
 
-  // Development convenience paths (host machine / shared folder).
   if (__DEV__) {
     candidates.push(
       `/Users/Shared/SayItBetter/${MODEL_FILENAME}`,
@@ -98,4 +95,54 @@ export function buildModelPathCandidates(
   }
 
   return [...new Set(candidates)];
+}
+
+/**
+ * Ensure the bundled model is available on the filesystem.
+ * - Android: extract from APK assets once into Documents
+ * - iOS: copy from app bundle Resources once into Documents
+ * After that, llama.rn loads a normal file:// path (no adb push needed).
+ */
+export async function ensureBundledModelAvailable(): Promise<string | null> {
+  const dest = getRuntimeModelPath();
+
+  try {
+    if (await RNFS.exists(dest)) {
+      const stat = await RNFS.stat(dest);
+      if (Number(stat.size) > 1024 * 1024) {
+        return dest;
+      }
+    }
+  } catch {
+    // continue to extract
+  }
+
+  try {
+    if (Platform.OS === 'android') {
+      await RNFS.copyFileAssets(ANDROID_ASSET_MODEL_PATH, dest);
+      if (await RNFS.exists(dest)) {
+        return dest;
+      }
+      return null;
+    }
+
+    // iOS: file may be at bundle root or under Resources/
+    const bundleCandidates = [
+      `${RNFS.MainBundlePath}/${MODEL_FILENAME}`,
+      `${RNFS.MainBundlePath}/Resources/${MODEL_FILENAME}`,
+    ];
+
+    for (const source of bundleCandidates) {
+      if (await RNFS.exists(source)) {
+        await RNFS.copyFile(source, dest);
+        if (await RNFS.exists(dest)) {
+          return dest;
+        }
+      }
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
 }

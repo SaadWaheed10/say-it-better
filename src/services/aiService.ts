@@ -10,7 +10,9 @@ import {
 } from '../types';
 import {
   buildModelPathCandidates,
+  ensureBundledModelAvailable,
   getStoredModelPathOverride,
+  MODEL_FILENAME,
   toFileUri,
 } from './modelPath';
 
@@ -86,7 +88,20 @@ function cleanModelOutput(text: string): string {
   return cleaned;
 }
 
-async function resolveExistingModelPath(): Promise<string | null> {
+type ResolvedModel = {
+  path: string;
+  /** When true, pass is_model_asset to llama.rn (iOS bundle primarily). */
+  isAsset?: boolean;
+};
+
+async function resolveExistingModelPath(): Promise<ResolvedModel | null> {
+  // 1) Extract bundled model from APK/IPA into Documents (preferred for APK sharing).
+  const bundled = await ensureBundledModelAvailable();
+  if (bundled) {
+    return {path: bundled};
+  }
+
+  // 2) Existing Documents / override / dev paths.
   const override = await getStoredModelPathOverride();
   const candidates = buildModelPathCandidates(
     {
@@ -102,11 +117,16 @@ async function resolveExistingModelPath(): Promise<string | null> {
     try {
       const exists = await RNFS.exists(candidate);
       if (exists) {
-        return candidate;
+        return {path: candidate};
       }
     } catch {
       // continue
     }
+  }
+
+  // 3) iOS: try loading directly from the app bundle via llama.rn asset flag.
+  if (Platform.OS === 'ios') {
+    return {path: MODEL_FILENAME, isAsset: true};
   }
 
   return null;
@@ -128,14 +148,14 @@ export async function initializeModel(): Promise<ModelState> {
       message: 'Looking for the local language model…',
     });
 
-    const modelPath = await resolveExistingModelPath();
+    const resolved = await resolveExistingModelPath();
 
-    if (!modelPath) {
+    if (!resolved) {
       emit({
         status: 'missing',
         message: 'Local model file not found.',
         detail:
-          'Copy SmolLM2-360M-Instruct.Q4_K_M.gguf into the app Documents folder. See docs/MODEL_SETUP.md.',
+          'Run npm run bundle-model before building, then rebuild the app. See docs/MODEL_SETUP.md.',
       });
       return;
     }
@@ -143,12 +163,13 @@ export async function initializeModel(): Promise<ModelState> {
     emit({
       status: 'loading',
       message: 'Loading on-device model…',
-      path: modelPath,
+      path: resolved.path,
     });
 
     try {
       const nextContext = await initLlama({
-        model: toFileUri(modelPath),
+        model: resolved.isAsset ? resolved.path : toFileUri(resolved.path),
+        is_model_asset: Boolean(resolved.isAsset),
         n_ctx: 2048,
         n_gpu_layers: Platform.OS === 'ios' ? 99 : 0,
         use_mlock: true,
@@ -158,7 +179,7 @@ export async function initializeModel(): Promise<ModelState> {
       emit({
         status: 'ready',
         message: 'On-device model is ready for offline rewriting.',
-        path: modelPath,
+        path: resolved.path,
       });
     } catch (error) {
       const detail =
@@ -168,7 +189,7 @@ export async function initializeModel(): Promise<ModelState> {
         status: 'error',
         message: 'Could not initialize the local model.',
         detail,
-        path: modelPath,
+        path: resolved.path,
       });
     }
   })();

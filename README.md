@@ -34,6 +34,19 @@ npm run android
 Full platform guide: [docs/PLATFORM_SETUP.md](docs/PLATFORM_SETUP.md)  
 Model file: [docs/MODEL_SETUP.md](docs/MODEL_SETUP.md)
 
+### Ship an APK with the model inside (for testers)
+
+```bash
+npm run bundle-model      # once: pack GGUF into Android assets / iOS Resources
+npm run android           # debug install
+# or
+npm run android:release   # shareable APK (large ~260MB+)
+```
+
+Testers who install that APK do **not** need `copy-model:*`. First launch extracts the bundled model automatically.
+
+Native AI uses `llama.rn`'s existing Turbo Module — no custom Turbo Module required ([RN docs](https://reactnative.dev/docs/turbo-native-modules-introduction)).
+
 ## Local model
 
 See [docs/MODEL_SETUP.md](docs/MODEL_SETUP.md).

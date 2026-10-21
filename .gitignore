@@ -82,3 +82,7 @@ models/*.gguf
 
 # llama.rn generated Hexagon assets
 android/app/src/main/assets/ggml-hexagon/
+
+# Bundled GGUF weights (large). Run: npm run bundle-model
+android/app/src/main/assets/models/*.gguf
+ios/SayItBetter/Resources/*.gguf

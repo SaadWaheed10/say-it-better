@@ -10,8 +10,11 @@
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "setup:platforms": "bash ./scripts/setup-platforms.sh",
+    "bundle-model": "bash ./scripts/bundle-model.sh",
     "copy-model:ios": "bash ./scripts/copy-model-ios.sh",
-    "copy-model:android": "bash ./scripts/copy-model-android.sh"
+    "copy-model:android": "bash ./scripts/copy-model-android.sh",
+    "android:release": "npm run bundle-model && cd android && ./gradlew assembleRelease",
+    "preandroid": "node -e \"const fs=require('fs');const p='android/app/src/main/assets/models/SmolLM2-360M-Instruct.Q4_K_M.gguf';if(!fs.existsSync(p)){console.warn('[SayItBetter] Bundled model missing. Run: npm run bundle-model');}\""
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^3.1.1",
