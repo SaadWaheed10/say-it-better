@@ -1,4 +1,4 @@
-import {useScaledStyles} from '../../theme/useScaledStyles';
+import {useScaledStyles, rp, rr} from '../../theme/useScaledStyles';
 
 export function usePaginationDotsStyles() {
   return useScaledStyles(() => ({
@@ -6,11 +6,17 @@ export function usePaginationDotsStyles() {
       flexDirection: 'row' as const,
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
-      gap: 8,
+      gap: rp(8),
     },
     dot: {
-      height: 8,
-      borderRadius: 999,
+      height: rp(8),
+      borderRadius: rr(999),
+    },
+    dotActive: {
+      width: rp(18),
+    },
+    dotInactive: {
+      width: rp(8),
     },
   }));
 }

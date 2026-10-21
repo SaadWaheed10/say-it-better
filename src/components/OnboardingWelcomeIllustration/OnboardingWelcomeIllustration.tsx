@@ -14,7 +14,11 @@ export function OnboardingWelcomeIllustration() {
 
   return (
     <View style={styles.wrap} accessibilityLabel="Message improvement illustration">
-      <Svg width={280} height={170} viewBox="0 0 280 170">
+      <Svg
+        width={styles.svgWidth.width}
+        height={styles.svgHeight.height}
+        viewBox="0 0 280 170">
+
         <Path
           d="M40 120 C 70 70, 210 70, 240 120 C 210 155, 70 155, 40 120 Z"
           fill={lavender}

@@ -1,4 +1,4 @@
-import {useScaledStyles} from '../../theme/useScaledStyles';
+import {useScaledStyles, rp, rm, rr} from '../../theme/useScaledStyles';
 
 export function useOnboardingToneIllustrationStyles() {
   return useScaledStyles(() => ({
@@ -8,28 +8,37 @@ export function useOnboardingToneIllustrationStyles() {
     },
     card: {
       width: '100%' as const,
-      maxWidth: 320,
+      maxWidth: rp(320),
+      borderRadius: rr(22),
+      padding: rp(16),
     },
     messageCard: {
       borderWidth: 1,
-      padding: 16,
-      gap: 10,
+      padding: rp(16),
+      gap: rp(10),
+      borderRadius: rr(18),
+      marginBottom: rm(12),
     },
     line: {
-      height: 8,
-      borderRadius: 4,
+      height: rp(8),
+      borderRadius: rr(4),
     },
     chipRow: {
       flexDirection: 'row' as const,
       flexWrap: 'wrap' as const,
-      gap: 8,
+      gap: rp(8),
     },
     chip: {
       flexDirection: 'row' as const,
       alignItems: 'center' as const,
       borderWidth: 1,
-      paddingHorizontal: 10,
-      paddingVertical: 7,
+      paddingHorizontal: rp(10),
+      paddingVertical: rp(7),
+      borderRadius: rr(999),
+    },
+    chipLabel: {
+      marginLeft: rm(6),
+      fontWeight: '600' as const,
     },
   }));
 }

@@ -9,32 +9,24 @@ type Props = {
 };
 
 export function EmptyState({title, description}: Props) {
-  const {colors, typography, spacing} = useAppTheme();
+  const {colors} = useAppTheme();
   const styles = useEmptyStateStyles();
 
   return (
-    <View style={[styles.wrap, {padding: spacing.xl}]}>
-      <Text
-        style={[
-          typography.h3,
-          {color: colors.primaryText, textAlign: 'center'},
-        ]}>
-        {title}
-      </Text>
+    <View
+      style={[
+        styles.wrap,
+        {
+          backgroundColor: colors.surfaceMuted,
+          borderColor: colors.borderSoft,
+        },
+      ]}>
+      <Text style={[styles.title, {color: colors.primaryText}]}>{title}</Text>
       {description ? (
-        <Text
-          style={[
-            typography.body,
-            {
-              color: colors.secondaryText,
-              textAlign: 'center',
-              marginTop: spacing.sm,
-            },
-          ]}>
+        <Text style={[styles.description, {color: colors.secondaryText}]}>
           {description}
         </Text>
       ) : null}
     </View>
   );
 }
-

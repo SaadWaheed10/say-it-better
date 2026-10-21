@@ -10,20 +10,15 @@ type Props = {
 export function LoadingView({
   message = 'Finding the right words…',
 }: Props) {
-  const {colors, typography, spacing} = useAppTheme();
+  const {colors} = useAppTheme();
   const styles = useLoadingViewStyles();
 
   return (
-    <View style={[styles.wrap, {padding: spacing.xl}]}>
+    <View style={styles.wrap}>
       <ActivityIndicator size="large" color={colors.primaryNavy} />
-      <Text
-        style={[
-          typography.body,
-          {color: colors.secondaryText, marginTop: spacing.md, textAlign: 'center'},
-        ]}>
+      <Text style={[styles.message, {color: colors.secondaryText}]}>
         {message}
       </Text>
     </View>
   );
 }
-

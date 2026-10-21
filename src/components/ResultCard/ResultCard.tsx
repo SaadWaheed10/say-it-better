@@ -11,7 +11,7 @@ type Props = {
 };
 
 export function ResultCard({title, text, onCopy, compact = false}: Props) {
-  const {colors, typography, spacing, radii} = useAppTheme();
+  const {colors} = useAppTheme();
   const styles = useResultCardStyles();
 
   return (
@@ -19,25 +19,19 @@ export function ResultCard({title, text, onCopy, compact = false}: Props) {
       style={[
         styles.card,
         {
-          backgroundColor: colors.background,
-          borderColor: colors.border,
-          borderRadius: radii.lg,
-          padding: spacing.md,
+          backgroundColor: colors.surfaceSolid,
+          borderColor: colors.borderSoft,
         },
       ]}>
       {title ? (
-        <Text
-          style={[
-            typography.caption,
-            {color: colors.secondaryText, marginBottom: 8},
-          ]}>
+        <Text style={[styles.title, {color: colors.secondaryText}]}>
           {title}
         </Text>
       ) : null}
       <Text
         selectable
         style={[
-          compact ? typography.body : typography.bodyMedium,
+          compact ? styles.body : styles.bodyMedium,
           {color: colors.primaryText},
         ]}>
         {text}
@@ -46,17 +40,9 @@ export function ResultCard({title, text, onCopy, compact = false}: Props) {
         onPress={onCopy}
         accessibilityRole="button"
         accessibilityLabel="Copy message"
-        style={[
-          styles.copyButton,
-          {
-            backgroundColor: colors.primaryNavy,
-            borderRadius: radii.pill,
-            marginTop: spacing.sm,
-          },
-        ]}>
-        <Text style={[typography.label, {color: colors.white}]}>Copy</Text>
+        style={[styles.copyButton, {backgroundColor: colors.primaryNavy}]}>
+        <Text style={[styles.copyLabel, {color: colors.white}]}>Copy</Text>
       </Pressable>
     </View>
   );
 }
-

@@ -1,8 +1,11 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {Alert, Pressable, ScrollView, Switch, Text, View} from 'react-native';
+import {Alert, ScrollView, Switch, Text, View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppButton} from '../../components/AppButton';
+import {FadeIn} from '../../components/FadeIn';
+import {PressScale} from '../../components/PressScale';
+import {ScreenBackdrop} from '../../components/ScreenBackdrop';
 import {ToneSelector} from '../../components/ToneSelector';
 import {APP_NAME, APP_VERSION} from '../../constants/storage';
 import {useAppTheme} from '../../hooks/useAppTheme';
@@ -17,8 +20,7 @@ import {ModelState, ThemePreference, ToneId} from '../../types';
 import {useSettingsScreenStyles} from './SettingsScreen.styles';
 
 export function SettingsScreen() {
-  const {colors, typography, spacing, radii, themePreference, setThemePreference} =
-    useAppTheme();
+  const {colors, themePreference, setThemePreference} = useAppTheme();
   const styles = useSettingsScreenStyles();
   const [defaultTone, setDefaultTone] = useState<ToneId>('professional');
   const [modelState, setModelState] = useState<ModelState>(getModelStatus());
@@ -67,201 +69,136 @@ export function SettingsScreen() {
     }
   };
 
-  const rowStyle = [
-    styles.row,
-    {
-      backgroundColor: colors.secondaryBackground,
-      borderRadius: radii.md,
-      borderColor: colors.border,
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.sm,
-      marginBottom: spacing.sm,
-    },
-  ];
+  const surface = {
+    backgroundColor: colors.surfaceSolid,
+    borderColor: colors.borderSoft,
+  };
 
   return (
     <SafeAreaView
-      style={[styles.safe, {backgroundColor: colors.background}]}
+      style={[styles.safe, {backgroundColor: colors.canvas}]}
       edges={['top']}>
-      <ScrollView
-        contentContainerStyle={{
-          paddingHorizontal: spacing.lg,
-          paddingBottom: spacing.xxxl,
-        }}>
-        <Text style={[typography.h2, {color: colors.primaryText}]}>
-          Settings
-        </Text>
-
-        <Text
-          style={[
-            typography.label,
-            {
-              color: colors.secondaryText,
-              marginTop: spacing.lg,
-              marginBottom: spacing.sm,
-            },
-          ]}>
-          App Preferences
-        </Text>
-
-        <Text
-          style={[
-            typography.bodyMedium,
-            {color: colors.primaryText, marginBottom: spacing.xs},
-          ]}>
-          Default Tone
-        </Text>
-        <ToneSelector selected={defaultTone} onSelect={onToneChange} />
-
-        <View style={[rowStyle, {marginTop: spacing.lg}]}>
-          <Text style={[typography.bodyMedium, {color: colors.primaryText}]}>
-            Dark Mode
+      <ScreenBackdrop variant="app" />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <FadeIn>
+          <Text style={[styles.title, {color: colors.primaryText}]}>
+            Settings
           </Text>
-          <Switch
-            value={themePreference === 'dark'}
-            onValueChange={onThemeToggle}
-            accessibilityLabel="Toggle dark mode"
-          />
-        </View>
+        </FadeIn>
 
-        <Pressable
-          style={rowStyle}
-          onPress={() =>
-            Alert.alert(
-              'Theme preference',
-              'Choose light, dark, or follow the system setting.',
-              [
-                {text: 'Light', onPress: () => setThemePreference('light')},
-                {text: 'Dark', onPress: () => setThemePreference('dark')},
-                {text: 'System', onPress: () => setThemePreference('system')},
-                {text: 'Cancel', style: 'cancel'},
-              ],
-            )
-          }>
-          <Text style={[typography.bodyMedium, {color: colors.primaryText}]}>
-            Theme
+        <FadeIn delay={80}>
+          <Text style={[styles.sectionLabel, {color: colors.secondaryText}]}>
+            App Preferences
           </Text>
-          <Text style={[typography.body, {color: colors.secondaryText}]}>
-            {themePreference}
-          </Text>
-        </Pressable>
 
-        <Text
-          style={[
-            typography.label,
-            {
-              color: colors.secondaryText,
-              marginTop: spacing.lg,
-              marginBottom: spacing.sm,
-            },
-          ]}>
-          Local AI Model
-        </Text>
-        <View
-          style={[
-            styles.modelCard,
-            {
-              backgroundColor: colors.secondaryBackground,
-              borderRadius: radii.lg,
-              borderColor: colors.border,
-              padding: spacing.md,
-            },
-          ]}>
-          <Text style={[typography.bodyMedium, {color: colors.primaryText}]}>
-            Status: {modelState.status}
+          <Text style={[styles.fieldLabel, {color: colors.primaryText}]}>
+            Default Tone
           </Text>
-          <Text
-            style={[
-              typography.caption,
-              {color: colors.secondaryText, marginTop: 6},
-            ]}>
-            {modelState.message}
-          </Text>
-          {modelState.detail ? (
-            <Text
-              style={[
-                typography.caption,
-                {color: colors.secondaryText, marginTop: 4},
-              ]}>
-              {modelState.detail}
+          <ToneSelector selected={defaultTone} onSelect={onToneChange} />
+
+          <View style={[styles.row, styles.rowAfterTone, surface]}>
+            <Text style={[styles.rowText, {color: colors.primaryText}]}>
+              Dark Mode
             </Text>
-          ) : null}
-          {modelState.path ? (
-            <Text
-              style={[
-                typography.caption,
-                {color: colors.secondaryText, marginTop: 4},
-              ]}
-              numberOfLines={2}>
-              Path: {modelState.path}
+            <Switch
+              value={themePreference === 'dark'}
+              onValueChange={onThemeToggle}
+              accessibilityLabel="Toggle dark mode"
+            />
+          </View>
+
+          <PressScale
+            style={[styles.row, surface]}
+            onPress={() =>
+              Alert.alert(
+                'Theme preference',
+                'Choose light, dark, or follow the system setting.',
+                [
+                  {text: 'Light', onPress: () => setThemePreference('light')},
+                  {text: 'Dark', onPress: () => setThemePreference('dark')},
+                  {
+                    text: 'System',
+                    onPress: () => setThemePreference('system'),
+                  },
+                  {text: 'Cancel', style: 'cancel'},
+                ],
+              )
+            }>
+            <Text style={[styles.rowText, {color: colors.primaryText}]}>
+              Theme
             </Text>
-          ) : null}
+            <Text style={[styles.rowValue, {color: colors.secondaryText}]}>
+              {themePreference}
+            </Text>
+          </PressScale>
+        </FadeIn>
+
+        <FadeIn delay={140}>
+          <Text style={[styles.sectionLabel, {color: colors.secondaryText}]}>
+            Local AI Model
+          </Text>
+          <View style={[styles.modelCard, surface]}>
+            <Text style={[styles.modelTitle, {color: colors.primaryText}]}>
+              Status: {modelState.status}
+            </Text>
+            <Text style={[styles.modelMeta, {color: colors.secondaryText}]}>
+              {modelState.message}
+            </Text>
+            {modelState.detail ? (
+              <Text
+                style={[styles.modelMetaTight, {color: colors.secondaryText}]}>
+                {modelState.detail}
+              </Text>
+            ) : null}
+            {modelState.path ? (
+              <Text
+                style={[styles.modelMetaTight, {color: colors.secondaryText}]}
+                numberOfLines={2}>
+                Path: {modelState.path}
+              </Text>
+            ) : null}
+            <AppButton
+              label="Retry model load"
+              variant="secondary"
+              loading={busy}
+              onPress={onReloadModel}
+              style={styles.retryBtn}
+            />
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={200}>
+          <Text style={[styles.sectionLabel, {color: colors.secondaryText}]}>
+            Privacy & Data
+          </Text>
+          <View style={[styles.row, surface]}>
+            <Text
+              style={[styles.privacyText, {color: colors.secondaryText}]}>
+              Messages and history are stored only on this device. SayItBetter
+              does not send your writing to a cloud AI API.
+            </Text>
+          </View>
           <AppButton
-            label="Retry model load"
+            label="Clear local history"
             variant="secondary"
-            loading={busy}
-            onPress={onReloadModel}
-            style={{marginTop: spacing.md}}
+            onPress={onClearHistory}
           />
-        </View>
 
-        <Text
-          style={[
-            typography.label,
-            {
-              color: colors.secondaryText,
-              marginTop: spacing.lg,
-              marginBottom: spacing.sm,
-            },
-          ]}>
-          Privacy & Data
-        </Text>
-        <View style={rowStyle}>
-          <Text
-            style={[
-              typography.body,
-              {color: colors.secondaryText, flex: 1, paddingVertical: 8},
-            ]}>
-            Messages and history are stored only on this device. SayItBetter does
-            not send your writing to a cloud AI API.
+          <Text style={[styles.sectionLabel, {color: colors.secondaryText}]}>
+            About
           </Text>
-        </View>
-        <AppButton
-          label="Clear local history"
-          variant="secondary"
-          onPress={onClearHistory}
-        />
-
-        <Text
-          style={[
-            typography.label,
-            {
-              color: colors.secondaryText,
-              marginTop: spacing.lg,
-              marginBottom: spacing.sm,
-            },
-          ]}>
-          About
-        </Text>
-        <View style={rowStyle}>
-          <Text style={[typography.bodyMedium, {color: colors.primaryText}]}>
-            About {APP_NAME}
+          <View style={[styles.row, surface]}>
+            <Text style={[styles.rowText, {color: colors.primaryText}]}>
+              About {APP_NAME}
+            </Text>
+            <Text style={[styles.aboutCaption, {color: colors.secondaryText}]}>
+              v{APP_VERSION}
+            </Text>
+          </View>
+          <Text style={[styles.footerNote, {color: colors.secondaryText}]}>
+            Made for a better way to communicate
           </Text>
-          <Text style={[typography.caption, {color: colors.secondaryText}]}>
-            v{APP_VERSION}
-          </Text>
-        </View>
-        <Text
-          style={[
-            typography.caption,
-            {
-              color: colors.secondaryText,
-              textAlign: 'center',
-              marginTop: spacing.xl,
-            },
-          ]}>
-          Made for a better way to communicate
-        </Text>
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );

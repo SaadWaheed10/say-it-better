@@ -17,7 +17,7 @@ export function ToneSelector({
   onSelect,
   tones = TONES,
 }: Props) {
-  const {colors, typography, spacing, radii} = useAppTheme();
+  const {colors} = useAppTheme();
   const styles = useToneSelectorStyles();
 
   return (
@@ -36,11 +36,10 @@ export function ToneSelector({
               {
                 backgroundColor: isSelected
                   ? colors.primaryNavy
-                  : colors.background,
-                borderColor: isSelected ? colors.primaryNavy : colors.border,
-                borderRadius: radii.md,
-                paddingVertical: spacing.sm,
-                paddingHorizontal: spacing.sm,
+                  : colors.surfaceSolid,
+                borderColor: isSelected
+                  ? colors.primaryNavy
+                  : colors.borderSoft,
               },
             ]}>
             <ToneIcon
@@ -49,10 +48,9 @@ export function ToneSelector({
             />
             <Text
               style={[
-                typography.label,
+                styles.label,
                 {
                   color: isSelected ? colors.white : colors.primaryText,
-                  marginTop: 6,
                 },
               ]}>
               {tone.label}
@@ -63,4 +61,3 @@ export function ToneSelector({
     </View>
   );
 }
-

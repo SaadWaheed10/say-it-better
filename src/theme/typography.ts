@@ -2,15 +2,15 @@ import {TextStyle} from 'react-native';
 
 export const typography = {
   brand: {
+    fontSize: 34,
+    fontWeight: '800',
+    letterSpacing: -0.8,
+  } satisfies TextStyle,
+  h1: {
     fontSize: 28,
     fontWeight: '700',
     letterSpacing: -0.4,
-  } satisfies TextStyle,
-  h1: {
-    fontSize: 26,
-    fontWeight: '700',
-    letterSpacing: -0.3,
-    lineHeight: 34,
+    lineHeight: 36,
   } satisfies TextStyle,
   h2: {
     fontSize: 22,

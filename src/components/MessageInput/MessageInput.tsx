@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import {Pressable, Text, TextInput, View} from 'react-native';
 import {MAX_MESSAGE_LENGTH} from '../../constants/tones';
 import {useAppTheme} from '../../hooks/useAppTheme';
 import {useMessageInputStyles} from './MessageInput.styles';
@@ -24,7 +19,7 @@ export function MessageInput({
   maxLength = MAX_MESSAGE_LENGTH,
   onClear,
 }: Props) {
-  const {colors, typography, spacing, radii} = useAppTheme();
+  const {colors} = useAppTheme();
   const styles = useMessageInputStyles();
 
   return (
@@ -32,10 +27,8 @@ export function MessageInput({
       style={[
         styles.wrap,
         {
-          backgroundColor: colors.background,
-          borderColor: colors.border,
-          borderRadius: radii.lg,
-          padding: spacing.md,
+          backgroundColor: colors.surfaceSolid,
+          borderColor: colors.borderSoft,
         },
       ]}>
       <TextInput
@@ -45,11 +38,7 @@ export function MessageInput({
         placeholderTextColor={colors.secondaryText}
         multiline
         textAlignVertical="top"
-        style={[
-          typography.body,
-          styles.input,
-          {color: colors.primaryText, minHeight: 140},
-        ]}
+        style={[styles.input, {color: colors.primaryText}]}
         accessibilityLabel="Message input"
       />
       <View style={styles.footer}>
@@ -59,18 +48,18 @@ export function MessageInput({
             accessibilityRole="button"
             accessibilityLabel="Clear message"
             hitSlop={8}>
-            <Text style={[typography.caption, {color: colors.primaryAccent}]}>
+            <Text
+              style={[styles.footerAction, {color: colors.primaryAccent}]}>
               Clear
             </Text>
           </Pressable>
         ) : (
           <View />
         )}
-        <Text style={[typography.caption, {color: colors.secondaryText}]}>
+        <Text style={[styles.counter, {color: colors.secondaryText}]}>
           {value.length}/{maxLength}
         </Text>
       </View>
     </View>
   );
 }
-

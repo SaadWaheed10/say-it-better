@@ -1,13 +1,13 @@
-import {useScaledStyles} from '../../theme/useScaledStyles';
+import {useScaledStyles, rp, rr} from '../../theme/useScaledStyles';
 
 export function useAppButtonStyles() {
   return useScaledStyles(() => ({
     base: {
-      minHeight: 52,
-      borderRadius: 999,
+      minHeight: rp(52),
+      borderRadius: rr(999),
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
-      paddingHorizontal: 22,
+      paddingHorizontal: rp(22),
     },
   }));
 }

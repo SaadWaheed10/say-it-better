@@ -1,11 +1,11 @@
 import React from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   Text,
   ViewStyle,
 } from 'react-native';
 import {useAppTheme} from '../../hooks/useAppTheme';
+import {PressScale} from '../PressScale';
 import {useAppButtonStyles} from './AppButton.styles';
 
 type Variant = 'primary' | 'secondary' | 'ghost';
@@ -39,27 +39,27 @@ export function AppButton({
     variant === 'primary'
       ? colors.primaryNavy
       : variant === 'secondary'
-        ? colors.secondaryBackground
+        ? colors.surfaceSolid
         : 'transparent';
 
   const textColor =
     variant === 'primary' ? colors.white : colors.primaryNavy;
 
   return (
-    <Pressable
+    <PressScale
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel || label}
       accessibilityState={{disabled: isDisabled}}
       disabled={isDisabled}
       onPress={onPress}
-      style={({pressed}) => [
+      style={[
         styles.base,
         {
           backgroundColor,
           borderColor:
-            variant === 'secondary' ? colors.border : 'transparent',
+            variant === 'secondary' ? colors.borderSoft : 'transparent',
           borderWidth: variant === 'secondary' ? 1 : 0,
-          opacity: isDisabled ? 0.5 : pressed ? 0.88 : 1,
+          opacity: isDisabled ? 0.5 : 1,
         },
         style,
       ]}>
@@ -71,7 +71,6 @@ export function AppButton({
           {iconRight ? ` ${iconRight}` : ''}
         </Text>
       )}
-    </Pressable>
+    </PressScale>
   );
 }
-

@@ -24,11 +24,11 @@ export function PaginationDots({total, activeIndex}: Props) {
             key={index}
             style={[
               styles.dot,
+              active ? styles.dotActive : styles.dotInactive,
               {
                 backgroundColor: active
                   ? colors.primaryAccent
                   : colors.lavender,
-                width: active ? 18 : 8,
               },
             ]}
           />
@@ -37,4 +37,3 @@ export function PaginationDots({total, activeIndex}: Props) {
     </View>
   );
 }
-

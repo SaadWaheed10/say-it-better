@@ -4,9 +4,10 @@ import {CompositeScreenProps, useFocusEffect} from '@react-navigation/native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppButton} from '../../components/AppButton';
-import {LavenderBackdrop} from '../../components/LavenderBackdrop';
+import {FadeIn} from '../../components/FadeIn';
 import {OnboardingToneIllustration} from '../../components/OnboardingToneIllustration';
 import {PaginationDots} from '../../components/PaginationDots';
+import {ScreenBackdrop} from '../../components/ScreenBackdrop';
 import {useAppTheme} from '../../hooks/useAppTheme';
 import {markOnboardingCompleted} from '../../services/settingsService';
 import {OnboardingStackParamList, RootStackParamList} from '../../types';
@@ -18,7 +19,7 @@ type Props = CompositeScreenProps<
 >;
 
 export function OnboardingToneScreen({navigation}: Props) {
-  const {colors, typography, spacing} = useAppTheme();
+  const {colors} = useAppTheme();
   const styles = useOnboardingToneScreenStyles();
 
   const finish = useCallback(async () => {
@@ -41,37 +42,27 @@ export function OnboardingToneScreen({navigation}: Props) {
 
   return (
     <SafeAreaView
-      style={[styles.safe, {backgroundColor: colors.background}]}
+      style={[styles.safe, {backgroundColor: colors.canvas}]}
       edges={['top', 'bottom']}>
-      <LavenderBackdrop />
-      <View style={[styles.content, {paddingHorizontal: spacing.xl}]}>
-        <View style={{width: '100%', marginBottom: spacing.xl}}>
+      <ScreenBackdrop variant="onboarding" />
+      <View style={styles.content}>
+        <FadeIn style={styles.illustration}>
           <OnboardingToneIllustration />
-        </View>
-        <Text
-          style={[
-            typography.h1,
-            {color: colors.primaryText, textAlign: 'center'},
-          ]}>
-          Every message. The right tone.
-        </Text>
-        <Text
-          style={[
-            typography.body,
-            {
-              color: colors.secondaryText,
-              textAlign: 'center',
-              marginTop: spacing.sm,
-            },
-          ]}>
-          Make every message sound the way you want. Choose a tone that fits
-          your situation.
-        </Text>
+        </FadeIn>
+        <FadeIn delay={100}>
+          <Text style={[styles.title, {color: colors.primaryText}]}>
+            Every message. The right tone.
+          </Text>
+          <Text style={[styles.body, {color: colors.secondaryText}]}>
+            Make every message sound the way you want. Choose a tone that fits
+            your situation.
+          </Text>
+        </FadeIn>
       </View>
 
-      <View style={[styles.footer, {paddingHorizontal: spacing.xl}]}>
+      <FadeIn delay={180} style={styles.footer}>
         <PaginationDots total={2} activeIndex={1} />
-        <View style={[styles.actions, {marginTop: spacing.lg}]}>
+        <View style={styles.actions}>
           <AppButton
             label="Back"
             variant="ghost"
@@ -90,10 +81,10 @@ export function OnboardingToneScreen({navigation}: Props) {
         <AppButton
           label="Get Started"
           onPress={finish}
-          style={{marginTop: spacing.sm}}
+          style={styles.primaryCta}
           accessibilityLabel="Finish onboarding and go to home"
         />
-      </View>
+      </FadeIn>
     </SafeAreaView>
   );
 }

@@ -5,6 +5,9 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppButton} from '../../components/AppButton';
 import {EmptyState} from '../../components/EmptyState';
+import {FadeIn} from '../../components/FadeIn';
+import {PressScale} from '../../components/PressScale';
+import {ScreenBackdrop} from '../../components/ScreenBackdrop';
 import {TONES} from '../../constants/tones';
 import {useAppTheme} from '../../hooks/useAppTheme';
 import {
@@ -24,7 +27,7 @@ function formatDate(value: number): string {
 }
 
 export function HistoryScreen() {
-  const {colors, typography, spacing, radii} = useAppTheme();
+  const {colors} = useAppTheme();
   const styles = useHistoryScreenStyles();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -73,92 +76,84 @@ export function HistoryScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.safe, {backgroundColor: colors.background}]}
+      style={[styles.safe, {backgroundColor: colors.canvas}]}
       edges={['top']}>
-      <View style={{paddingHorizontal: spacing.lg, flex: 1}}>
-        <View style={styles.headerRow}>
-          <Text style={[typography.h2, {color: colors.primaryText}]}>
-            History
+      <ScreenBackdrop variant="app" />
+      <View style={styles.body}>
+        <FadeIn>
+          <View style={styles.headerRow}>
+            <Text style={[styles.title, {color: colors.primaryText}]}>
+              History
+            </Text>
+            {items.length > 0 ? (
+              <AppButton
+                label="Clear all"
+                variant="ghost"
+                onPress={onClearAll}
+                style={styles.clearBtn}
+              />
+            ) : null}
+          </View>
+          <Text style={[styles.caption, {color: colors.secondaryText}]}>
+            Message history stays on this device only.
           </Text>
-          {items.length > 0 ? (
-            <AppButton
-              label="Clear all"
-              variant="ghost"
-              onPress={onClearAll}
-              style={{minHeight: 40, paddingHorizontal: 8}}
-            />
-          ) : null}
-        </View>
-        <Text
-          style={[
-            typography.caption,
-            {color: colors.secondaryText, marginBottom: spacing.md},
-          ]}>
-          Message history stays on this device only.
-        </Text>
+        </FadeIn>
 
         {items.length === 0 ? (
-          <EmptyState
-            title="No rewrites yet"
-            description="Improved messages will appear here after you use Improve with AI."
-          />
+          <FadeIn delay={80}>
+            <EmptyState
+              title="No rewrites yet"
+              description="Improved messages will appear here after you use Improve with AI."
+            />
+          </FadeIn>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false}>
-            {items.map(item => {
+            {items.map((item, index) => {
               const toneLabel =
                 TONES.find(tone => tone.id === item.tone)?.label ?? item.tone;
               return (
-                <Pressable
-                  key={item.id}
-                  onPress={() =>
-                    navigation.navigate('Results', {
-                      original: item.original,
-                      improved: item.improved,
-                      alternatives: item.alternatives,
-                      tone: item.tone,
-                      historyId: item.id,
-                    })
-                  }
-                  style={[
-                    styles.card,
-                    {
-                      backgroundColor: colors.secondaryBackground,
-                      borderRadius: radii.lg,
-                      borderColor: colors.border,
-                      padding: spacing.md,
-                      marginBottom: spacing.sm,
-                    },
-                  ]}>
-                  <Text
-                    style={[typography.caption, {color: colors.secondaryText}]}>
-                    {toneLabel} · {formatDate(item.createdAt)}
-                  </Text>
-                  <Text
-                    numberOfLines={2}
+                <FadeIn key={item.id} delay={Math.min(index * 40, 200)}>
+                  <PressScale
+                    onPress={() =>
+                      navigation.navigate('Results', {
+                        original: item.original,
+                        improved: item.improved,
+                        alternatives: item.alternatives,
+                        tone: item.tone,
+                        historyId: item.id,
+                      })
+                    }
                     style={[
-                      typography.bodyMedium,
-                      {color: colors.primaryText, marginTop: 6},
+                      styles.card,
+                      {
+                        backgroundColor: colors.surfaceSolid,
+                        borderColor: colors.borderSoft,
+                      },
                     ]}>
-                    {item.improved}
-                  </Text>
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      typography.caption,
-                      {color: colors.secondaryText, marginTop: 6},
-                    ]}>
-                    Original: {item.original}
-                  </Text>
-                  <Pressable
-                    onPress={() => onDelete(item.id)}
-                    accessibilityRole="button"
-                    accessibilityLabel="Delete history item"
-                    style={{marginTop: 10, alignSelf: 'flex-start'}}>
-                    <Text style={[typography.caption, {color: colors.error}]}>
-                      Delete
+                    <Text style={[styles.meta, {color: colors.secondaryText}]}>
+                      {toneLabel} · {formatDate(item.createdAt)}
                     </Text>
-                  </Pressable>
-                </Pressable>
+                    <Text
+                      numberOfLines={2}
+                      style={[styles.preview, {color: colors.primaryText}]}>
+                      {item.improved}
+                    </Text>
+                    <Text
+                      numberOfLines={1}
+                      style={[styles.original, {color: colors.secondaryText}]}>
+                      Original: {item.original}
+                    </Text>
+                    <Pressable
+                      onPress={() => onDelete(item.id)}
+                      accessibilityRole="button"
+                      accessibilityLabel="Delete history item"
+                      style={styles.deleteHit}>
+                      <Text style={[styles.deleteText, {color: colors.error}]}>
+                        Delete
+                      </Text>
+                    </Pressable>
+                  </PressScale>
+                </FadeIn>
               );
             })}
           </ScrollView>

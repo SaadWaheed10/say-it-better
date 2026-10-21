@@ -1,4 +1,4 @@
-import {useScaledStyles} from '../theme/useScaledStyles';
+import {useScaledStyles, rp, rf} from '../theme/useScaledStyles';
 
 export function useMainTabNavigatorStyles() {
   return useScaledStyles(() => ({
@@ -8,11 +8,13 @@ export function useMainTabNavigatorStyles() {
     },
     label: {
       fontWeight: '600' as const,
+      fontSize: rf(12),
     },
     tabBar: {
-      height: 64,
-      paddingBottom: 8,
-      paddingTop: 8,
+      borderTopWidth: 1,
+    },
+    tabBarPaddingTop: {
+      paddingTop: rp(8),
     },
   }));
 }

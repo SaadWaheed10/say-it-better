@@ -18,10 +18,10 @@ export function RootNavigator() {
     ...(isDark ? DarkTheme : DefaultTheme),
     colors: {
       ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
-      background: colors.background,
-      card: colors.background,
+      background: colors.canvas,
+      card: colors.canvas,
       text: colors.primaryText,
-      border: colors.border,
+      border: colors.borderSoft,
       primary: colors.primaryNavy,
     },
   };

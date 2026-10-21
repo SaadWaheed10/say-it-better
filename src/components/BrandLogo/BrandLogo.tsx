@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Svg, {Path, Circle} from 'react-native-svg';
 import {brandNavy} from '../../theme/colors';
+import {ri} from '../../theme/useScaledStyles';
 import {useBrandLogoStyles} from './BrandLogo.styles';
 
 type Props = {
@@ -10,20 +11,24 @@ type Props = {
 
 export function BrandLogo({size = 72}: Props) {
   const styles = useBrandLogoStyles();
-  const radius = size * 0.22;
+  const scaled = ri(size);
+  const radius = scaled * 0.22;
   return (
     <View
       style={[
         styles.wrap,
         {
-          width: size,
-          height: size,
+          width: scaled,
+          height: scaled,
           borderRadius: radius,
           backgroundColor: brandNavy,
         },
       ]}
       accessibilityLabel="SayItBetter logo">
-      <Svg width={size * 0.55} height={size * 0.55} viewBox="0 0 64 64">
+      <Svg
+        width={scaled * 0.55}
+        height={scaled * 0.55}
+        viewBox="0 0 64 64">
         <Path
           d="M34 8 L44 20 L30 34 L24 28 Z"
           fill="#FFFFFF"
@@ -38,4 +43,3 @@ export function BrandLogo({size = 72}: Props) {
     </View>
   );
 }
-

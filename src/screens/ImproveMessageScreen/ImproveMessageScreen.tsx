@@ -11,8 +11,10 @@ import {
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppButton} from '../../components/AppButton';
+import {FadeIn} from '../../components/FadeIn';
 import {LoadingView} from '../../components/LoadingView';
 import {MessageInput} from '../../components/MessageInput';
+import {ScreenBackdrop} from '../../components/ScreenBackdrop';
 import {ScreenHeader} from '../../components/ScreenHeader';
 import {ToneSelector} from '../../components/ToneSelector';
 import {DEFAULT_TONE} from '../../constants/tones';
@@ -26,7 +28,7 @@ import {useImproveMessageScreenStyles} from './ImproveMessageScreen.styles';
 type Props = NativeStackScreenProps<RootStackParamList, 'ImproveMessage'>;
 
 export function ImproveMessageScreen({navigation, route}: Props) {
-  const {colors, typography, spacing, radii} = useAppTheme();
+  const {colors} = useAppTheme();
   const styles = useImproveMessageScreenStyles();
   const [message, setMessage] = useState(route.params?.message ?? '');
   const [tone, setTone] = useState<ToneId>(
@@ -35,7 +37,9 @@ export function ImproveMessageScreen({navigation, route}: Props) {
   const [instruction, setInstruction] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [defaultsLoaded, setDefaultsLoaded] = useState(Boolean(route.params?.tone));
+  const [defaultsLoaded, setDefaultsLoaded] = useState(
+    Boolean(route.params?.tone),
+  );
 
   React.useEffect(() => {
     if (defaultsLoaded) {
@@ -88,12 +92,13 @@ export function ImproveMessageScreen({navigation, route}: Props) {
 
   return (
     <SafeAreaView
-      style={[styles.safe, {backgroundColor: colors.background}]}
+      style={[styles.safe, {backgroundColor: colors.canvas}]}
       edges={['top', 'bottom']}>
+      <ScreenBackdrop variant="focus" />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={{paddingHorizontal: spacing.lg, flex: 1}}>
+        <View style={styles.body}>
           <ScreenHeader
             title="Improve Message"
             onBack={() => navigation.goBack()}
@@ -104,69 +109,64 @@ export function ImproveMessageScreen({navigation, route}: Props) {
             <ScrollView
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{paddingBottom: spacing.xxl}}>
-              <MessageInput
-                value={message}
-                onChangeText={text => {
-                  setMessage(text);
-                  if (error) {
-                    setError(null);
-                  }
-                }}
-                onClear={() => setMessage('')}
-              />
+              contentContainerStyle={styles.scrollContent}>
+              <FadeIn>
+                <MessageInput
+                  value={message}
+                  onChangeText={text => {
+                    setMessage(text);
+                    if (error) {
+                      setError(null);
+                    }
+                  }}
+                  onClear={() => setMessage('')}
+                />
+              </FadeIn>
 
-              <Text
-                style={[
-                  typography.h3,
-                  {color: colors.primaryText, marginTop: spacing.lg, marginBottom: spacing.sm},
-                ]}>
-                Choose a Tone
-              </Text>
-              <ToneSelector selected={tone} onSelect={setTone} />
+              <FadeIn delay={80}>
+                <Text style={[styles.sectionTitle, {color: colors.primaryText}]}>
+                  Choose a Tone
+                </Text>
+                <ToneSelector selected={tone} onSelect={setTone} />
+              </FadeIn>
 
-              <Text
-                style={[
-                  typography.label,
-                  {color: colors.primaryText, marginTop: spacing.lg, marginBottom: spacing.xs},
-                ]}>
-                Optional instruction
-              </Text>
-              <TextInput
-                value={instruction}
-                onChangeText={setInstruction}
-                placeholder="Make it warmer without sounding unprofessional."
-                placeholderTextColor={colors.secondaryText}
-                style={[
-                  typography.body,
-                  styles.instruction,
-                  {
-                    color: colors.primaryText,
-                    borderColor: colors.border,
-                    backgroundColor: colors.background,
-                    borderRadius: radii.md,
-                    padding: spacing.sm,
-                  },
-                ]}
-              />
-
-              {error ? (
+              <FadeIn delay={140}>
                 <Text
                   style={[
-                    typography.caption,
-                    {color: colors.error, marginTop: spacing.sm},
+                    styles.instructionLabel,
+                    {color: colors.primaryText},
                   ]}>
-                  {error}
+                  Optional instruction
                 </Text>
-              ) : null}
+                <TextInput
+                  value={instruction}
+                  onChangeText={setInstruction}
+                  placeholder="Make it warmer without sounding unprofessional."
+                  placeholderTextColor={colors.secondaryText}
+                  style={[
+                    styles.instruction,
+                    {
+                      color: colors.primaryText,
+                      borderColor: colors.borderSoft,
+                      backgroundColor: colors.surfaceSolid,
+                    },
+                  ]}
+                />
 
-              <AppButton
-                label="Improve with AI"
-                onPress={onSubmit}
-                disabled={!canSubmit}
-                style={{marginTop: spacing.xl}}
-                accessibilityLabel="Improve with AI"
-              />
+                {error ? (
+                  <Text style={[styles.error, {color: colors.error}]}>
+                    {error}
+                  </Text>
+                ) : null}
+
+                <AppButton
+                  label="Improve with AI"
+                  onPress={onSubmit}
+                  disabled={!canSubmit}
+                  style={styles.submit}
+                  accessibilityLabel="Improve with AI"
+                />
+              </FadeIn>
             </ScrollView>
           )}
         </View>

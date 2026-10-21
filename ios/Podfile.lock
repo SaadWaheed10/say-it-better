@@ -24,6 +24,8 @@ PODS:
     - Yoga
   - boost (1.84.0):
     - ReactNativeDependencies
+  - BVLinearGradient (2.8.3):
+    - React-Core
   - DoubleConversion (1.1.6):
     - ReactNativeDependencies
   - fast_float (8.0.0):
@@ -2013,6 +2015,7 @@ PODS:
 DEPENDENCIES:
   - "AsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - boost (from `build/rndeps-facades/boost`)
+  - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `build/rndeps-facades/DoubleConversion`)
   - fast_float (from `build/rndeps-facades/fast_float`)
   - FBLazyVector (from `build/rncore-facades/FBLazyVector`)
@@ -2112,6 +2115,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   boost:
     :path: build/rndeps-facades/boost
+  BVLinearGradient:
+    :path: "../node_modules/react-native-linear-gradient"
   DoubleConversion:
     :path: build/rndeps-facades/DoubleConversion
   fast_float:
@@ -2301,6 +2306,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   AsyncStorage: d6deeca6c42d671c57f78abf400aad622f13bb75
   boost: 8502bfdc46e2804408af2e163049ece181009af4
+  BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
   DoubleConversion: 501a575c40c0b50c89685762dd3e415e6bb26fb0
   fast_float: 7c925d1cebf8328d4018d061f49377e9f887e3b4
   FBLazyVector: fdebac2dfe9c53bca49f8218fbdf1e24e36c8be0
@@ -2396,4 +2402,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 0ee921fb57b0a30e83f7186dd26ad57cb19d99a7
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2
