@@ -1,13 +1,6 @@
 import React, {useMemo, useState} from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import {Alert, Text, TextInput, View} from 'react-native';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppButton} from '../../components/AppButton';
@@ -19,9 +12,11 @@ import {ScreenHeader} from '../../components/ScreenHeader';
 import {ToneSelector} from '../../components/ToneSelector';
 import {DEFAULT_TONE} from '../../constants/tones';
 import {useAppTheme} from '../../hooks/useAppTheme';
+import {useVoiceInput} from '../../hooks/useVoiceInput';
 import {improveMessage} from '../../services/aiService';
 import {addHistoryItem} from '../../services/historyService';
 import {getSettings} from '../../services/settingsService';
+import {releaseVoiceResources} from '../../services/voiceService';
 import {RootStackParamList, ToneId} from '../../types';
 import {useImproveMessageScreenStyles} from './ImproveMessageScreen.styles';
 
@@ -41,6 +36,25 @@ export function ImproveMessageScreen({navigation, route}: Props) {
     Boolean(route.params?.tone),
   );
 
+  const voice = useVoiceInput({
+    onTranscript: text => {
+      setMessage(prev => {
+        const next = prev.trim().length > 0 ? `${prev.trim()} ${text}` : text;
+        return next;
+      });
+      setError(null);
+    },
+    onError: detail => {
+      setError(detail);
+    },
+  });
+
+  React.useEffect(() => {
+    return () => {
+      void releaseVoiceResources();
+    };
+  }, []);
+
   React.useEffect(() => {
     if (defaultsLoaded) {
       return;
@@ -54,8 +68,19 @@ export function ImproveMessageScreen({navigation, route}: Props) {
   }, [defaultsLoaded, route.params?.tone]);
 
   const canSubmit = useMemo(
-    () => message.trim().length > 0 && !loading,
-    [message, loading],
+    () =>
+      message.trim().length > 0 &&
+      !loading &&
+      !voice.isRecording &&
+      !voice.isTranscribing &&
+      !voice.isLoadingModel,
+    [
+      message,
+      loading,
+      voice.isRecording,
+      voice.isTranscribing,
+      voice.isLoadingModel,
+    ],
   );
 
   const onSubmit = async () => {
@@ -73,7 +98,8 @@ export function ImproveMessageScreen({navigation, route}: Props) {
         instruction,
       });
       const historyItem = await addHistoryItem(result);
-      navigation.replace('Results', {
+      // Use navigate (not replace) so header back on Results returns here.
+      navigation.navigate('Results', {
         original: result.original,
         improved: result.improved,
         alternatives: result.alternatives,
@@ -95,82 +121,107 @@ export function ImproveMessageScreen({navigation, route}: Props) {
       style={[styles.safe, {backgroundColor: colors.canvas}]}
       edges={['top', 'bottom']}>
       <ScreenBackdrop variant="focus" />
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={styles.body}>
-          <ScreenHeader
-            title="Improve Message"
-            onBack={() => navigation.goBack()}
-          />
-          {loading ? (
-            <LoadingView />
-          ) : (
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}>
-              <FadeIn>
-                <MessageInput
-                  value={message}
-                  onChangeText={text => {
-                    setMessage(text);
-                    if (error) {
-                      setError(null);
-                    }
-                  }}
-                  onClear={() => setMessage('')}
-                />
-              </FadeIn>
+      <View style={styles.body}>
+        <ScreenHeader
+          title="Correct phrase"
+          onBack={() => navigation.goBack()}
+        />
+        {loading ? (
+          <LoadingView />
+        ) : (
+          <KeyboardAwareScrollView
+            style={styles.flex}
+            contentContainerStyle={styles.scrollContent}
+            enableOnAndroid
+            enableAutomaticScroll
+            keyboardShouldPersistTaps="handled"
+            keyboardOpeningTime={0}
+            extraScrollHeight={24}
+            extraHeight={120}
+            showsVerticalScrollIndicator={false}
+            enableResetScrollToCoords={false}>
+            <FadeIn>
+              <Text style={[styles.hint, {color: colors.secondaryText}]}>
+                Type or speak your rough English. We’ll return the corrected
+                phrase — not an answer to it.
+              </Text>
+              <MessageInput
+                value={message}
+                onChangeText={text => {
+                  setMessage(text);
+                  if (error) {
+                    setError(null);
+                  }
+                }}
+                onClear={() => setMessage('')}
+                voice={{
+                  status: voice.status,
+                  statusMessage:
+                    voice.status === 'idle' &&
+                    voice.voice.message === 'Voice input is ready.'
+                      ? undefined
+                      : voice.voice.message,
+                  isRecording: voice.isRecording,
+                  isTranscribing: voice.isTranscribing,
+                  isLoadingModel: voice.isLoadingModel,
+                  disabled: loading || voice.busy,
+                  onMicPress: () => {
+                    void voice.begin();
+                  },
+                  onStopPress: () => {
+                    void voice.stop();
+                  },
+                  onCancelPress: () => {
+                    void voice.cancel();
+                  },
+                }}
+              />
+            </FadeIn>
 
-              <FadeIn delay={80}>
-                <Text style={[styles.sectionTitle, {color: colors.primaryText}]}>
-                  Choose a Tone
+            <FadeIn delay={80}>
+              <Text style={[styles.sectionTitle, {color: colors.primaryText}]}>
+                Choose a tone
+              </Text>
+              <ToneSelector selected={tone} onSelect={setTone} />
+            </FadeIn>
+
+            <FadeIn delay={140}>
+              <Text
+                style={[styles.instructionLabel, {color: colors.primaryText}]}>
+                Optional instruction
+              </Text>
+              <TextInput
+                value={instruction}
+                onChangeText={setInstruction}
+                placeholder="Make it warmer without sounding unprofessional."
+                placeholderTextColor={colors.secondaryText}
+                style={[
+                  styles.instruction,
+                  {
+                    color: colors.primaryText,
+                    borderColor: colors.borderSoft,
+                    backgroundColor: colors.surfaceSolid,
+                  },
+                ]}
+              />
+
+              {error ? (
+                <Text style={[styles.error, {color: colors.error}]}>
+                  {error}
                 </Text>
-                <ToneSelector selected={tone} onSelect={setTone} />
-              </FadeIn>
+              ) : null}
 
-              <FadeIn delay={140}>
-                <Text
-                  style={[
-                    styles.instructionLabel,
-                    {color: colors.primaryText},
-                  ]}>
-                  Optional instruction
-                </Text>
-                <TextInput
-                  value={instruction}
-                  onChangeText={setInstruction}
-                  placeholder="Make it warmer without sounding unprofessional."
-                  placeholderTextColor={colors.secondaryText}
-                  style={[
-                    styles.instruction,
-                    {
-                      color: colors.primaryText,
-                      borderColor: colors.borderSoft,
-                      backgroundColor: colors.surfaceSolid,
-                    },
-                  ]}
-                />
-
-                {error ? (
-                  <Text style={[styles.error, {color: colors.error}]}>
-                    {error}
-                  </Text>
-                ) : null}
-
-                <AppButton
-                  label="Improve with AI"
-                  onPress={onSubmit}
-                  disabled={!canSubmit}
-                  style={styles.submit}
-                  accessibilityLabel="Improve with AI"
-                />
-              </FadeIn>
-            </ScrollView>
-          )}
-        </View>
-      </KeyboardAvoidingView>
+              <AppButton
+                label="Correct my phrase"
+                onPress={onSubmit}
+                disabled={!canSubmit}
+                style={styles.submit}
+                accessibilityLabel="Correct my phrase"
+              />
+            </FadeIn>
+          </KeyboardAwareScrollView>
+        )}
+      </View>
     </SafeAreaView>
   );
 }

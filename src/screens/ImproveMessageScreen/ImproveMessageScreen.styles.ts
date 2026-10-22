@@ -9,7 +9,13 @@ export function useImproveMessageScreenStyles() {
       flex: 1,
     },
     scrollContent: {
-      paddingBottom: rp(32),
+      paddingBottom: rp(48),
+      flexGrow: 1,
+    },
+    hint: {
+      fontSize: rf(14),
+      lineHeight: rl(20),
+      marginBottom: rm(14),
     },
     sectionTitle: {
       fontSize: rf(18),

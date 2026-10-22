@@ -4,14 +4,17 @@ import RNFS from 'react-native-fs';
 import {STORAGE_KEYS} from '../constants/storage';
 
 /**
- * Bundled GGUF filename.
+ * On-device instruct LLM (English correction).
  * Android: android/app/src/main/assets/models/<file>
  * iOS: ios/SayItBetter/Resources/<file> (Copy Bundle Resources)
  */
-export const MODEL_FILENAME = 'SmolLM2-360M-Instruct.Q4_K_M.gguf';
+export const MODEL_FILENAME = 'Qwen2.5-1.5B-Instruct-Q4_K_M.gguf';
 
 /** Relative Android asset path (inside src/main/assets). */
 export const ANDROID_ASSET_MODEL_PATH = `models/${MODEL_FILENAME}`;
+
+/** Minimum size sanity check (~900MB for this Q4_K_M build). */
+const MIN_MODEL_BYTES = 100 * 1024 * 1024;
 
 const DEV_MODEL_CANDIDATES: string[] = [];
 
@@ -97,36 +100,52 @@ export function buildModelPathCandidates(
   return [...new Set(candidates)];
 }
 
+async function isUsableModelFile(path: string): Promise<boolean> {
+  try {
+    if (!(await RNFS.exists(path))) {
+      return false;
+    }
+    const stat = await RNFS.stat(path);
+    return Number(stat.size) >= MIN_MODEL_BYTES;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Ensure the bundled model is available on the filesystem.
  * - Android: extract from APK assets once into Documents
  * - iOS: copy from app bundle Resources once into Documents
- * After that, llama.rn loads a normal file:// path (no adb push needed).
  */
 export async function ensureBundledModelAvailable(): Promise<string | null> {
   const dest = getRuntimeModelPath();
 
+  // Drop legacy SmolLM2 extract if present (saves device storage after upgrade).
   try {
-    if (await RNFS.exists(dest)) {
-      const stat = await RNFS.stat(dest);
-      if (Number(stat.size) > 1024 * 1024) {
-        return dest;
-      }
+    const legacy = `${RNFS.DocumentDirectoryPath.replace(
+      /\/$/,
+      '',
+    )}/SmolLM2-360M-Instruct.Q4_K_M.gguf`;
+    if (await RNFS.exists(legacy)) {
+      await RNFS.unlink(legacy);
     }
   } catch {
-    // continue to extract
+    // ignore
+  }
+
+  if (await isUsableModelFile(dest)) {
+    return dest;
   }
 
   try {
     if (Platform.OS === 'android') {
       await RNFS.copyFileAssets(ANDROID_ASSET_MODEL_PATH, dest);
-      if (await RNFS.exists(dest)) {
+      if (await isUsableModelFile(dest)) {
         return dest;
       }
       return null;
     }
 
-    // iOS: file may be at bundle root or under Resources/
     const bundleCandidates = [
       `${RNFS.MainBundlePath}/${MODEL_FILENAME}`,
       `${RNFS.MainBundlePath}/Resources/${MODEL_FILENAME}`,
@@ -135,7 +154,7 @@ export async function ensureBundledModelAvailable(): Promise<string | null> {
     for (const source of bundleCandidates) {
       if (await RNFS.exists(source)) {
         await RNFS.copyFile(source, dest);
-        if (await RNFS.exists(dest)) {
+        if (await isUsableModelFile(dest)) {
           return dest;
         }
       }

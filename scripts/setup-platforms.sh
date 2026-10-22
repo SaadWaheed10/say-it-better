@@ -23,6 +23,13 @@ if [[ ! -d node_modules/llama.rn/ios/rnllama.xcframework ]] || [[ ! -d node_modu
   (cd node_modules/llama.rn && node ./install/download-native-artifacts.js --force)
 fi
 
+# Ensure on-device models are present (Qwen LLM + Whisper)
+if [[ ! -f android/app/src/main/assets/models/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf ]] || \
+   [[ ! -f android/app/src/main/assets/models/ggml-tiny.en.bin ]]; then
+  echo "==> Bundling on-device models (Qwen2.5-1.5B + Whisper)"
+  npm run bundle-model || echo "WARNING: Run once: npm run bundle-model"
+fi
+
 echo "==> iOS: pod install"
 if ! command -v cmake >/dev/null 2>&1; then
   echo "WARNING: cmake not found on PATH. Hermes podspec needs cmake (brew install cmake)."

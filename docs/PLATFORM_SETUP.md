@@ -84,7 +84,7 @@ Without the model file, the UI still runs; Settings shows model status as missin
 ### Android
 
 - Application id: `com.sayitbetter`
-- `largeHeap=true` for the 360M model
+- `largeHeap=true` for the on-device LLM (Qwen2.5-1.5B)
 - CPU inference by default (`n_gpu_layers: 0`)
 - minSdk 24
 

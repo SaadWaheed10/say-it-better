@@ -1,6 +1,6 @@
 # SayItBetter
 
-React Native CLI (0.88) + TypeScript app that rewrites messages on-device with `llama.rn` and a local SmolLM2 GGUF model.
+React Native CLI (0.88) + TypeScript app that corrects English on-device with `llama.rn` (**Qwen2.5-1.5B**) and optional voice input via `whisper.rn`.
 
 ## Features
 
@@ -8,7 +8,8 @@ React Native CLI (0.88) + TypeScript app that rewrites messages on-device with `
 - Improve Message with tone selection
 - Results with clipboard copy
 - History + Settings (local AsyncStorage)
-- Offline AI via `llama.rn` (no cloud AI API)
+- Offline English correction via `llama.rn` + Qwen2.5-1.5B (no cloud AI API)
+- Offline voice dictation via `whisper.rn` (`ggml-tiny.en.bin`)
 - Responsive layout via [`react-native-pixelflow`](https://www.npmjs.com/package/react-native-pixelflow) (`usePixelSheet` / per-screen `*.styles.ts`)
 
 ## Design

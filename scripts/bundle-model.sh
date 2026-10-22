@@ -1,37 +1,52 @@
 #!/usr/bin/env bash
-# Copy the GGUF into Android assets (and iOS Resources) so release builds
-# ship with the model. The file is gitignored because it is ~270MB.
+# Bundle on-device models into Android assets + iOS Resources (gitignored; too large for Git).
+# - Qwen2.5-1.5B Instruct GGUF (~1GB) for English correction
+# - Whisper ggml-tiny.en.bin (~74MB) for voice dictation
+#
+# After this runs once, normal `npm run ios` / `android` pick them up automatically.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-MODEL_NAME="SmolLM2-360M-Instruct.Q4_K_M.gguf"
-MODEL_SRC="${MODEL_SRC:-$HOME/Downloads/$MODEL_NAME}"
+ANDROID_ASSETS="$ROOT/android/app/src/main/assets/models"
+IOS_RESOURCES="$ROOT/ios/SayItBetter/Resources"
+mkdir -p "$ANDROID_ASSETS" "$IOS_RESOURCES"
 
-# Prefer project models/ symlink if it resolves
-if [[ -f "$ROOT/models/$MODEL_NAME" ]]; then
-  MODEL_SRC="$ROOT/models/$MODEL_NAME"
+# --- LLM (Qwen2.5) ---
+MODEL_NAME="Qwen2.5-1.5B-Instruct-Q4_K_M.gguf"
+MODEL_SRC="${MODEL_SRC:-$ROOT/models/$MODEL_NAME}"
+
+if [[ ! -f "$MODEL_SRC" ]]; then
+  if [[ -f "$HOME/Downloads/$MODEL_NAME" ]]; then
+    MODEL_SRC="$HOME/Downloads/$MODEL_NAME"
+  else
+    echo "LLM model not found. Downloading…"
+    bash "$ROOT/scripts/download-llm-model.sh" "$ROOT/models/$MODEL_NAME"
+    MODEL_SRC="$ROOT/models/$MODEL_NAME"
+  fi
 fi
 
 if [[ ! -f "$MODEL_SRC" ]]; then
-  echo "Model not found at: $MODEL_SRC"
-  echo "Set MODEL_SRC=/path/to/$MODEL_NAME or place it in ~/Downloads/"
+  echo "LLM model not found at: $MODEL_SRC"
   exit 1
 fi
 
-ANDROID_ASSETS="$ROOT/android/app/src/main/assets/models"
-IOS_RESOURCES="$ROOT/ios/SayItBetter/Resources"
+# Remove previous SmolLM2 bundle if present (avoid shipping two LLMs).
+rm -f \
+  "$ANDROID_ASSETS/SmolLM2-360M-Instruct.Q4_K_M.gguf" \
+  "$IOS_RESOURCES/SmolLM2-360M-Instruct.Q4_K_M.gguf"
 
-mkdir -p "$ANDROID_ASSETS" "$IOS_RESOURCES"
-
-echo "Bundling model from: $MODEL_SRC"
+echo "Bundling LLM from: $MODEL_SRC"
 cp -f "$MODEL_SRC" "$ANDROID_ASSETS/$MODEL_NAME"
 cp -f "$MODEL_SRC" "$IOS_RESOURCES/$MODEL_NAME"
-
-# Keep a tiny marker so CI/scripts can detect presence without scanning size
 echo "$MODEL_NAME" > "$ANDROID_ASSETS/.bundled"
 echo "$MODEL_NAME" > "$IOS_RESOURCES/.bundled"
-
 ls -lh "$ANDROID_ASSETS/$MODEL_NAME" "$IOS_RESOURCES/$MODEL_NAME"
+
+# --- Whisper ---
 echo ""
-echo "Model bundled into Android assets and iOS Resources."
-echo "Rebuild the app (npm run android / ios). Testers do NOT need copy-model:*."
+bash "$ROOT/scripts/bundle-whisper-model.sh"
+
+echo ""
+echo "Both models are in Android assets and iOS Resources."
+echo "Rebuild once (npm run android / ios). Day-to-day runs need no extra commands."
+echo "Note: APK/IPA will be large (~1GB+) because Qwen 1.5B is bundled."

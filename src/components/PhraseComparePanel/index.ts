@@ -1,0 +1,1 @@
+export {PhraseComparePanel} from './PhraseComparePanel';

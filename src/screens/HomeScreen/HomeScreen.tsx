@@ -82,7 +82,8 @@ export function HomeScreen() {
             Let's find the right words.
           </Text>
           <Text style={[styles.subtitle, {color: colors.secondaryText}]}>
-            Improve your message with AI — privately, on your device.
+            Type or speak in your own words — we fix the English so it sounds
+            clear. Fully on your device.
           </Text>
         </FadeIn>
 
@@ -94,7 +95,8 @@ export function HomeScreen() {
             ]}
           />
           <Text style={[styles.heroCopy, {color: colors.primaryText}]}>
-            Rewrite a message in seconds while keeping your original meaning.
+            Rough English in → polished message out. We correct phrases, not
+            answer questions.
           </Text>
           <AppButton
             label="Start Improving"

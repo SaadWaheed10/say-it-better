@@ -1,18 +1,17 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {Alert, ScrollView, Text, View} from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import Svg, {Path} from 'react-native-svg';
 import {AppButton} from '../../components/AppButton';
 import {FadeIn} from '../../components/FadeIn';
-import {PressScale} from '../../components/PressScale';
+import {PhraseComparePanel} from '../../components/PhraseComparePanel';
 import {ResultCard} from '../../components/ResultCard';
 import {ScreenBackdrop} from '../../components/ScreenBackdrop';
 import {ScreenHeader} from '../../components/ScreenHeader';
+import {TONES} from '../../constants/tones';
 import {useAppTheme} from '../../hooks/useAppTheme';
 import {RootStackParamList} from '../../types';
-import {ri} from '../../theme/useScaledStyles';
 import {useResultsScreenStyles} from './ResultsScreen.styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Results'>;
@@ -22,6 +21,11 @@ export function ResultsScreen({navigation, route}: Props) {
   const styles = useResultsScreenStyles();
   const {original, improved, alternatives, tone} = route.params;
   const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
+
+  const toneLabel = useMemo(
+    () => TONES.find(item => item.id === tone)?.label,
+    [tone],
+  );
 
   const copyText = async (text: string, label: string) => {
     try {
@@ -40,46 +44,27 @@ export function ResultsScreen({navigation, route}: Props) {
       <ScreenBackdrop variant="focus" />
       <View style={styles.body}>
         <ScreenHeader
-          title="Your Improved Message"
-          onBack={() => navigation.goBack()}
-          right={
-            <PressScale
-              accessibilityRole="button"
-              accessibilityLabel="Copy improved message"
-              hitSlop={8}
-              onPress={() => copyText(improved, 'Improved message copied')}
-              style={[
-                styles.copyHit,
-                {backgroundColor: colors.surfaceMuted},
-              ]}>
-              <Svg width={ri(22)} height={ri(22)} viewBox="0 0 24 24">
-                <Path
-                  d="M8 8 h11 v13 H8 Z"
-                  stroke={colors.primaryNavy}
-                  strokeWidth={1.8}
-                  fill="none"
-                />
-                <Path
-                  d="M5 16 V3 h11"
-                  stroke={colors.primaryNavy}
-                  strokeWidth={1.8}
-                  fill="none"
-                />
-              </Svg>
-            </PressScale>
-          }
+          title="Before & after"
+          onBack={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+              return;
+            }
+            // Fallback if Results was opened without a prior screen.
+            navigation.navigate('ImproveMessage', {
+              message: original,
+              tone,
+            });
+          }}
         />
 
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}>
           <FadeIn>
-            <View
-              style={[styles.badge, {backgroundColor: colors.successSoft}]}>
-              <Text style={[styles.badgeText, {color: colors.success}]}>
-                Here's your improved message!
-              </Text>
-            </View>
+            <Text style={[styles.lead, {color: colors.secondaryText}]}>
+              Compare what you entered with the corrected English you can send.
+            </Text>
 
             {copiedLabel ? (
               <Text style={[styles.copied, {color: colors.success}]}>
@@ -87,17 +72,21 @@ export function ResultsScreen({navigation, route}: Props) {
               </Text>
             ) : null}
 
-            <ResultCard
-              title="Improved Version"
-              text={improved}
-              onCopy={() => copyText(improved, 'Improved message copied')}
+            <PhraseComparePanel
+              original={original}
+              corrected={improved}
+              toneLabel={toneLabel}
+              onCopyOriginal={() => copyText(original, 'Draft copied')}
+              onCopyCorrected={() =>
+                copyText(improved, 'Corrected phrase copied')
+              }
             />
           </FadeIn>
 
           {alternatives.length > 0 ? (
             <FadeIn delay={100}>
               <Text style={[styles.sectionTitle, {color: colors.primaryText}]}>
-                Other Options
+                Other options
               </Text>
               {alternatives.map((alt, index) => (
                 <View
@@ -115,7 +104,7 @@ export function ResultsScreen({navigation, route}: Props) {
 
           <FadeIn delay={160}>
             <AppButton
-              label="Try Another Tone"
+              label="Try another tone"
               variant="secondary"
               onPress={() =>
                 navigation.navigate('ImproveMessage', {
@@ -126,7 +115,7 @@ export function ResultsScreen({navigation, route}: Props) {
               style={styles.secondaryCta}
             />
             <AppButton
-              label="Edit Original"
+              label="Edit your draft"
               variant="ghost"
               onPress={() =>
                 navigation.navigate('ImproveMessage', {
