@@ -3,6 +3,12 @@ import {StyleSheet, View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, {Circle, Ellipse, Path} from 'react-native-svg';
 import {useAppTheme} from '../../hooks/useAppTheme';
+import {
+  darkBackdropOrbs,
+  darkGradientHero,
+  lightBackdropOrbs,
+  lightGradientHero,
+} from '../../theme/colors';
 
 export type BackdropVariant = 'splash' | 'onboarding' | 'app' | 'focus';
 
@@ -12,23 +18,34 @@ type Props = {
 
 export function ScreenBackdrop({variant = 'app'}: Props) {
   const {colors, isDark} = useAppTheme();
-
-  const blob = isDark ? colors.lavender : colors.lavender;
-  const accent = isDark
-    ? 'rgba(123, 127, 232, 0.22)'
-    : 'rgba(80, 84, 216, 0.18)';
-  const mist = isDark
-    ? 'rgba(42, 46, 74, 0.55)'
-    : 'rgba(230, 232, 255, 0.7)';
+  const orbs = isDark ? darkBackdropOrbs : lightBackdropOrbs;
+  const heroStops = isDark ? [...darkGradientHero] : [...lightGradientHero];
 
   const intensity =
-    variant === 'splash' ? 1 : variant === 'onboarding' ? 0.9 : variant === 'focus' ? 0.55 : 0.75;
+    variant === 'splash'
+      ? 1
+      : variant === 'onboarding'
+        ? 0.95
+        : variant === 'focus'
+          ? 0.7
+          : 0.85;
 
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <LinearGradient
         colors={[colors.gradientTop, colors.gradientMid, colors.gradientBottom]}
-        locations={[0, 0.45, 1]}
+        locations={[0, 0.42, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      {/* Soft diagonal jewel wash */}
+      <LinearGradient
+        colors={[
+          `${heroStops[0]}55`,
+          'transparent',
+          `${heroStops[heroStops.length - 1]}33`,
+        ]}
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 1}}
         style={StyleSheet.absoluteFill}
       />
       <Svg
@@ -38,52 +55,60 @@ export function ScreenBackdrop({variant = 'app'}: Props) {
         preserveAspectRatio="xMidYMid slice"
         style={StyleSheet.absoluteFill}>
         <Ellipse
-          cx="40"
-          cy="20"
-          rx="200"
-          ry="140"
-          fill={blob}
-          opacity={0.5 * intensity}
+          cx="30"
+          cy="0"
+          rx="210"
+          ry="160"
+          fill={orbs.teal}
+          opacity={0.9 * intensity}
         />
         <Ellipse
           cx="360"
-          cy="110"
-          rx="160"
-          ry="120"
-          fill={accent}
+          cy="90"
+          rx="170"
+          ry="130"
+          fill={orbs.amber}
           opacity={0.85 * intensity}
         />
+        <Ellipse
+          cx="320"
+          cy="320"
+          rx="110"
+          ry="90"
+          fill={orbs.rose}
+          opacity={0.55 * intensity}
+        />
         <Circle
-          cx="300"
-          cy="280"
-          r="70"
-          fill={mist}
-          opacity={0.45 * intensity}
+          cx="70"
+          cy="420"
+          r="80"
+          fill={orbs.mist}
+          opacity={0.5 * intensity}
         />
         {variant === 'splash' || variant === 'onboarding' ? (
           <Path
             d="M0 680 C 90 620, 170 760, 250 710 S 340 660, 390 720 L 390 844 L 0 844 Z"
-            fill={blob}
-            opacity={0.55 * intensity}
+            fill={orbs.teal}
+            opacity={0.35 * intensity}
           />
         ) : (
           <Ellipse
-            cx="60"
-            cy="780"
-            rx="180"
-            ry="100"
-            fill={mist}
-            opacity={0.4 * intensity}
+            cx="80"
+            cy="800"
+            rx="200"
+            ry="120"
+            fill={orbs.amber}
+            opacity={0.28 * intensity}
           />
         )}
         {variant === 'focus' ? (
           <Ellipse
             cx="195"
-            cy="160"
-            rx="220"
-            ry="90"
-            fill={accent}
-            opacity={0.35}
+            cy="150"
+            rx="240"
+            ry="100"
+            fill={orbs.teal}
+            opacity={0.32}
           />
         ) : null}
       </Svg>

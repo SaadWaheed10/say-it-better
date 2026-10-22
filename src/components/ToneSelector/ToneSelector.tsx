@@ -35,22 +35,22 @@ export function ToneSelector({
               styles.chip,
               {
                 backgroundColor: isSelected
-                  ? colors.primaryNavy
+                  ? colors.primaryAccent
                   : colors.surfaceSolid,
                 borderColor: isSelected
-                  ? colors.primaryNavy
+                  ? colors.primaryAccent
                   : colors.borderSoft,
               },
             ]}>
             <ToneIcon
               name={tone.icon}
-              color={isSelected ? colors.white : colors.primaryNavy}
+              color={isSelected ? colors.canvas : colors.primaryAccent}
             />
             <Text
               style={[
                 styles.label,
                 {
-                  color: isSelected ? colors.white : colors.primaryText,
+                  color: isSelected ? colors.canvas : colors.primaryText,
                 },
               ]}>
               {tone.label}

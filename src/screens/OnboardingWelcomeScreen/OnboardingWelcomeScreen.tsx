@@ -9,7 +9,7 @@ import {FadeIn} from '../../components/FadeIn';
 import {OnboardingWelcomeIllustration} from '../../components/OnboardingWelcomeIllustration';
 import {PaginationDots} from '../../components/PaginationDots';
 import {ScreenBackdrop} from '../../components/ScreenBackdrop';
-import {APP_NAME, APP_TAGLINE} from '../../constants/storage';
+import {APP_TAGLINE} from '../../constants/storage';
 import {useAppTheme} from '../../hooks/useAppTheme';
 import {markOnboardingCompleted} from '../../services/settingsService';
 import {OnboardingStackParamList, RootStackParamList} from '../../types';
@@ -47,8 +47,9 @@ export function OnboardingWelcomeScreen({navigation}: Props) {
       <View style={styles.content}>
         <FadeIn>
           <BrandLogo size={68} />
-          <Text style={[styles.brand, {color: colors.primaryNavy}]}>
-            {APP_NAME}
+          <Text style={[styles.brand, {color: colors.primaryText}]}>
+            SayIt
+            <Text style={{color: colors.primaryAccent}}>Better</Text>
           </Text>
           <Text style={[styles.tagline, {color: colors.secondaryText}]}>
             {APP_TAGLINE}

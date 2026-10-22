@@ -1,7 +1,9 @@
 import React from 'react';
 import {Pressable, Text, View} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import Svg, {Path} from 'react-native-svg';
 import {useAppTheme} from '../../hooks/useAppTheme';
+import {darkGradientHero, lightGradientHero} from '../../theme/colors';
 import {ri} from '../../theme/useScaledStyles';
 import {usePhraseComparePanelStyles} from './PhraseComparePanel.styles';
 
@@ -35,8 +37,9 @@ export function PhraseComparePanel({
   onCopyOriginal,
   onCopyCorrected,
 }: Props) {
-  const {colors} = useAppTheme();
+  const {colors, isDark} = useAppTheme();
   const styles = usePhraseComparePanelStyles();
+  const hero = isDark ? [...darkGradientHero] : [...lightGradientHero];
   const unchanged =
     original.trim().toLowerCase() === corrected.trim().toLowerCase();
 
@@ -111,7 +114,7 @@ export function PhraseComparePanel({
               styles.stepBadge,
               {backgroundColor: colors.primaryAccent},
             ]}>
-            <Text style={[styles.stepBadgeText, {color: colors.white}]}>2</Text>
+            <Text style={[styles.stepBadgeText, {color: colors.canvas}]}>2</Text>
           </View>
           <View style={styles.panelHeaderText}>
             <Text style={[styles.eyebrow, {color: colors.primaryAccent}]}>
@@ -142,10 +145,16 @@ export function PhraseComparePanel({
           onPress={onCopyCorrected}
           accessibilityRole="button"
           accessibilityLabel="Copy corrected phrase"
-          style={[styles.primaryCopy, {backgroundColor: colors.primaryNavy}]}>
-          <Text style={[styles.primaryCopyLabel, {color: colors.white}]}>
-            Copy corrected phrase
-          </Text>
+          style={styles.primaryCopy}>
+          <LinearGradient
+            colors={[hero[0], hero[1], hero[2] ?? hero[1]]}
+            start={{x: 0, y: 0.5}}
+            end={{x: 1, y: 0.5}}
+            style={styles.primaryCopyGradient}>
+            <Text style={[styles.primaryCopyLabel, {color: colors.canvas}]}>
+              Copy corrected phrase
+            </Text>
+          </LinearGradient>
         </Pressable>
       </View>
     </View>

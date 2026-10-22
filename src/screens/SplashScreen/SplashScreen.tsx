@@ -5,7 +5,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {BrandLogo} from '../../components/BrandLogo';
 import {FadeIn} from '../../components/FadeIn';
 import {ScreenBackdrop} from '../../components/ScreenBackdrop';
-import {APP_NAME, APP_TAGLINE} from '../../constants/storage';
+import {APP_TAGLINE} from '../../constants/storage';
 import {useAppTheme} from '../../hooks/useAppTheme';
 import {initializeModel} from '../../services/aiService';
 import {isOnboardingCompleted} from '../../services/settingsService';
@@ -74,8 +74,9 @@ export function SplashScreen({navigation}: Props) {
           <BrandLogo size={96} />
         </FadeIn>
         <FadeIn delay={80}>
-          <Text style={[styles.brand, {color: colors.primaryNavy}]}>
-            {APP_NAME}
+          <Text style={[styles.brand, {color: colors.primaryText}]}>
+            SayIt
+            <Text style={{color: colors.primaryAccent}}>Better</Text>
           </Text>
         </FadeIn>
         <FadeIn delay={140}>

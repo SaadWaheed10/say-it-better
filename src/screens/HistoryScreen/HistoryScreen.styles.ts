@@ -6,6 +6,7 @@ export function useHistoryScreenStyles() {
     body: {
       paddingHorizontal: rp(20),
       flex: 1,
+      paddingBottom: rp(130),
     },
     headerRow: {
       flexDirection: 'row' as const,
@@ -14,10 +15,17 @@ export function useHistoryScreenStyles() {
       minHeight: rp(48),
     },
     title: {
-      fontSize: rf(22),
-      fontWeight: '700' as const,
-      letterSpacing: -0.2,
-      lineHeight: rl(30),
+      fontSize: rf(28),
+      fontWeight: '800' as const,
+      letterSpacing: -0.6,
+      lineHeight: rl(34),
+    },
+    titleAccent: {
+      height: rp(3),
+      width: rp(40),
+      borderRadius: rr(2),
+      marginTop: rm(6),
+      marginBottom: rm(4),
     },
     clearBtn: {
       minHeight: rp(40),
@@ -31,8 +39,22 @@ export function useHistoryScreenStyles() {
     card: {
       borderWidth: 1,
       borderRadius: rr(18),
-      padding: rp(16),
       marginBottom: rm(12),
+      overflow: 'hidden' as const,
+    },
+    cardStripe: {
+      position: 'absolute' as const,
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: rp(4),
+    },
+    /** Content inset — keeps copy clear of the left accent stripe */
+    cardBody: {
+      paddingTop: rp(16),
+      paddingBottom: rp(16),
+      paddingRight: rp(18),
+      paddingLeft: rp(20),
     },
     meta: {
       fontSize: rf(13),
@@ -51,6 +73,7 @@ export function useHistoryScreenStyles() {
     },
     deleteHit: {
       marginTop: rm(10),
+      marginLeft: 0,
       alignSelf: 'flex-start' as const,
     },
     deleteText: {

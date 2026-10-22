@@ -15,7 +15,7 @@ export function LoadingView({
 
   return (
     <View style={styles.wrap}>
-      <ActivityIndicator size="large" color={colors.primaryNavy} />
+      <ActivityIndicator size="large" color={colors.primaryAccent} />
       <Text style={[styles.message, {color: colors.secondaryText}]}>
         {message}
       </Text>

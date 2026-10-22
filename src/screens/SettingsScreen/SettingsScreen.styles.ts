@@ -5,13 +5,20 @@ export function useSettingsScreenStyles() {
     safe: {flex: 1},
     scrollContent: {
       paddingHorizontal: rp(20),
-      paddingBottom: rp(40),
+      paddingBottom: rp(130),
     },
     title: {
-      fontSize: rf(22),
-      fontWeight: '700' as const,
-      letterSpacing: -0.2,
-      lineHeight: rl(30),
+      fontSize: rf(28),
+      fontWeight: '800' as const,
+      letterSpacing: -0.6,
+      lineHeight: rl(34),
+    },
+    titleAccent: {
+      height: rp(3),
+      width: rp(40),
+      borderRadius: rr(2),
+      marginTop: rm(8),
+      marginBottom: rm(4),
     },
     sectionLabel: {
       fontSize: rf(14),

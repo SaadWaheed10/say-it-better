@@ -2,6 +2,7 @@ import React, {useCallback, useState} from 'react';
 import {Alert, Pressable, ScrollView, Text, View} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import LinearGradient from 'react-native-linear-gradient';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppButton} from '../../components/AppButton';
 import {EmptyState} from '../../components/EmptyState';
@@ -82,9 +83,21 @@ export function HistoryScreen() {
       <View style={styles.body}>
         <FadeIn>
           <View style={styles.headerRow}>
-            <Text style={[styles.title, {color: colors.primaryText}]}>
-              History
-            </Text>
+            <View>
+              <Text style={[styles.title, {color: colors.primaryText}]}>
+                History
+              </Text>
+              <LinearGradient
+                colors={[
+                  colors.primaryAccent,
+                  colors.accentWarm,
+                  colors.accentRose,
+                ]}
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 0}}
+                style={styles.titleAccent}
+              />
+            </View>
             {items.length > 0 ? (
               <AppButton
                 label="Clear all"
@@ -130,28 +143,48 @@ export function HistoryScreen() {
                         borderColor: colors.borderSoft,
                       },
                     ]}>
-                    <Text style={[styles.meta, {color: colors.secondaryText}]}>
-                      {toneLabel} · {formatDate(item.createdAt)}
-                    </Text>
-                    <Text
-                      numberOfLines={2}
-                      style={[styles.preview, {color: colors.primaryText}]}>
-                      {item.improved}
-                    </Text>
-                    <Text
-                      numberOfLines={1}
-                      style={[styles.original, {color: colors.secondaryText}]}>
-                      Original: {item.original}
-                    </Text>
-                    <Pressable
-                      onPress={() => onDelete(item.id)}
-                      accessibilityRole="button"
-                      accessibilityLabel="Delete history item"
-                      style={styles.deleteHit}>
-                      <Text style={[styles.deleteText, {color: colors.error}]}>
-                        Delete
+                    <LinearGradient
+                      colors={[
+                        colors.primaryAccent,
+                        colors.accentWarm,
+                        colors.accentRose,
+                      ]}
+                      start={{x: 0, y: 0}}
+                      end={{x: 0, y: 1}}
+                      style={styles.cardStripe}
+                    />
+                    <View style={styles.cardBody}>
+                      <Text
+                        style={[styles.meta, {color: colors.secondaryText}]}>
+                        {toneLabel} · {formatDate(item.createdAt)}
                       </Text>
-                    </Pressable>
+                      <Text
+                        numberOfLines={2}
+                        style={[
+                          styles.preview,
+                          {color: colors.primaryText},
+                        ]}>
+                        {item.improved}
+                      </Text>
+                      <Text
+                        numberOfLines={1}
+                        style={[
+                          styles.original,
+                          {color: colors.secondaryText},
+                        ]}>
+                        Original: {item.original}
+                      </Text>
+                      <Pressable
+                        onPress={() => onDelete(item.id)}
+                        accessibilityRole="button"
+                        accessibilityLabel="Delete history item"
+                        style={styles.deleteHit}>
+                        <Text
+                          style={[styles.deleteText, {color: colors.error}]}>
+                          Delete
+                        </Text>
+                      </Pressable>
+                    </View>
                   </PressScale>
                 </FadeIn>
               );

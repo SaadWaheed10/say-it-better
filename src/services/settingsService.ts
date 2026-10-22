@@ -5,7 +5,7 @@ import {AppSettings, ThemePreference, ToneId} from '../types';
 
 const DEFAULT_SETTINGS: AppSettings = {
   defaultTone: DEFAULT_TONE,
-  themePreference: 'light',
+  themePreference: 'dark',
   onboardingCompleted: false,
 };
 

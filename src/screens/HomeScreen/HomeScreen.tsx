@@ -2,6 +2,7 @@ import React, {useCallback, useState} from 'react';
 import {ScrollView, Text, View} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import LinearGradient from 'react-native-linear-gradient';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Svg, {Path} from 'react-native-svg';
 import {AppButton} from '../../components/AppButton';
@@ -10,12 +11,13 @@ import {PressScale} from '../../components/PressScale';
 import {ScreenBackdrop} from '../../components/ScreenBackdrop';
 import {ToneIcon} from '../../components/ToneIcon';
 import {TONES} from '../../constants/tones';
-import {APP_NAME} from '../../constants/storage';
 import {useAppTheme} from '../../hooks/useAppTheme';
 import {getModelStatus} from '../../services/aiService';
 import {ModelState, RootStackParamList, ToneId} from '../../types';
 import {ri} from '../../theme/useScaledStyles';
 import {useHomeScreenStyles} from './HomeScreen.styles';
+
+const TONE_ACCENTS = ['primaryAccent', 'accentWarm', 'accentRose', 'primaryAccent'] as const;
 
 export function HomeScreen() {
   const {colors} = useAppTheme();
@@ -44,7 +46,24 @@ export function HomeScreen() {
         showsVerticalScrollIndicator={false}>
         <FadeIn>
           <View style={styles.topRow}>
-            <View />
+            <View
+              style={[
+                styles.livePill,
+                {
+                  backgroundColor: colors.accentWash,
+                  borderColor: `${colors.primaryAccent}44`,
+                },
+              ]}>
+              <View
+                style={[
+                  styles.liveDot,
+                  {backgroundColor: colors.primaryAccent},
+                ]}
+              />
+              <Text style={[styles.liveText, {color: colors.primaryAccent}]}>
+                On-device
+              </Text>
+            </View>
             <PressScale
               accessibilityRole="button"
               accessibilityLabel="Open settings"
@@ -56,18 +75,21 @@ export function HomeScreen() {
               }
               style={[
                 styles.settingsHit,
-                {backgroundColor: colors.surfaceMuted},
+                {
+                  backgroundColor: colors.surfaceMuted,
+                  borderColor: colors.borderSoft,
+                },
               ]}>
               <Svg width={ri(22)} height={ri(22)} viewBox="0 0 24 24">
                 <Path
                   d="M12 15 a3 3 0 1 0 0-6 a3 3 0 0 0 0 6 Z"
-                  stroke={colors.primaryNavy}
+                  stroke={colors.primaryAccent}
                   strokeWidth={1.8}
                   fill="none"
                 />
                 <Path
                   d="M19.4 15 a1.7 1.7 0 0 0 .3 1.8 l.1.1 a2 2 0 1 1-2.8 2.8 l-.1-.1 a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5 V21 a2 2 0 1 1-4 0 v-.1 a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3 l-.1.1 a2 2 0 1 1-2.8-2.8 l.1-.1 a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1 H3 a2 2 0 1 1 0-4 h.1 a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8 l-.1-.1 a2 2 0 1 1 2.8-2.8 l.1.1 a1.7 1.7 0 0 0 1.8.3 H9 a1.7 1.7 0 0 0 1-1.5 V3 a2 2 0 1 1 4 0 v.1 a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3 l.1-.1 a2 2 0 1 1 2.8 2.8 l-.1.1 a1.7 1.7 0 0 0-.3 1.8 V9 a1.7 1.7 0 0 0 1.5 1 H21 a2 2 0 1 1 0 4 h-.1 a1.7 1.7 0 0 0-1.5 1 Z"
-                  stroke={colors.primaryNavy}
+                  stroke={colors.primaryText}
                   strokeWidth={1.5}
                   fill="none"
                 />
@@ -75,9 +97,20 @@ export function HomeScreen() {
             </PressScale>
           </View>
 
-          <Text style={[styles.brand, {color: colors.primaryNavy}]}>
-            {APP_NAME}
+          <Text style={[styles.brand, {color: colors.primaryText}]}>
+            SayIt
+            <Text style={{color: colors.primaryAccent}}>Better</Text>
           </Text>
+          <LinearGradient
+            colors={[
+              colors.primaryAccent,
+              colors.accentWarm,
+              colors.accentRose,
+            ]}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 0}}
+            style={styles.brandUnderline}
+          />
           <Text style={[styles.headline, {color: colors.primaryText}]}>
             Let's find the right words.
           </Text>
@@ -87,23 +120,53 @@ export function HomeScreen() {
           </Text>
         </FadeIn>
 
-        <FadeIn delay={90} style={styles.heroPanel}>
-          <View
-            style={[
-              styles.heroAccentBar,
-              {backgroundColor: colors.primaryAccent},
+        <FadeIn delay={90} style={styles.heroOuter}>
+          <LinearGradient
+            colors={[
+              `${colors.primaryAccent}66`,
+              `${colors.accentWarm}44`,
+              `${colors.accentRose}55`,
             ]}
-          />
-          <Text style={[styles.heroCopy, {color: colors.primaryText}]}>
-            Rough English in → polished message out. We correct phrases, not
-            answer questions.
-          </Text>
-          <AppButton
-            label="Start Improving"
-            iconRight="→"
-            onPress={() => openImprove()}
-            accessibilityLabel="Improve a message"
-          />
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 1}}
+            style={styles.heroBorder}>
+            <View
+              style={[
+                styles.heroInner,
+                {backgroundColor: colors.surfaceSolid},
+              ]}>
+              <View style={styles.heroAccentRow}>
+                <View
+                  style={[
+                    styles.heroAccentBar,
+                    {backgroundColor: colors.primaryAccent},
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.heroAccentBar,
+                    {backgroundColor: colors.accentWarm, width: 18},
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.heroAccentBar,
+                    {backgroundColor: colors.accentRose, width: 12},
+                  ]}
+                />
+              </View>
+              <Text style={[styles.heroCopy, {color: colors.primaryText}]}>
+                Rough English in → polished message out. We correct phrases, not
+                answer questions.
+              </Text>
+              <AppButton
+                label="Start Improving"
+                iconRight="→"
+                onPress={() => openImprove()}
+                accessibilityLabel="Improve a message"
+              />
+            </View>
+          </LinearGradient>
         </FadeIn>
 
         {modelState.status !== 'ready' ? (
@@ -132,25 +195,36 @@ export function HomeScreen() {
             Popular Tones
           </Text>
           <View style={styles.toneGrid}>
-            {TONES.slice(0, 4).map(tone => (
-              <PressScale
-                key={tone.id}
-                onPress={() => openImprove(tone.id)}
-                accessibilityRole="button"
-                accessibilityLabel={`Improve with ${tone.label} tone`}
-                style={[
-                  styles.toneCard,
-                  {
-                    backgroundColor: colors.surfaceSolid,
-                    borderColor: colors.borderSoft,
-                  },
-                ]}>
-                <ToneIcon name={tone.icon} color={colors.primaryNavy} />
-                <Text style={[styles.toneLabel, {color: colors.primaryText}]}>
-                  {tone.label}
-                </Text>
-              </PressScale>
-            ))}
+            {TONES.slice(0, 4).map((tone, index) => {
+              const accentKey = TONE_ACCENTS[index % TONE_ACCENTS.length];
+              const accent = colors[accentKey];
+              return (
+                <PressScale
+                  key={tone.id}
+                  onPress={() => openImprove(tone.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Improve with ${tone.label} tone`}
+                  style={[
+                    styles.toneCard,
+                    {
+                      backgroundColor: colors.surfaceSolid,
+                      borderColor: `${accent}44`,
+                    },
+                  ]}>
+                  <View
+                    style={[
+                      styles.toneIconWrap,
+                      {backgroundColor: `${accent}22`},
+                    ]}>
+                    <ToneIcon name={tone.icon} color={accent} />
+                  </View>
+                  <Text
+                    style={[styles.toneLabel, {color: colors.primaryText}]}>
+                    {tone.label}
+                  </Text>
+                </PressScale>
+              );
+            })}
           </View>
         </FadeIn>
       </ScrollView>

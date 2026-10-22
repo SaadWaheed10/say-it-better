@@ -40,8 +40,8 @@ export function ResultCard({title, text, onCopy, compact = false}: Props) {
         onPress={onCopy}
         accessibilityRole="button"
         accessibilityLabel="Copy message"
-        style={[styles.copyButton, {backgroundColor: colors.primaryNavy}]}>
-        <Text style={[styles.copyLabel, {color: colors.white}]}>Copy</Text>
+        style={[styles.copyButton, {backgroundColor: colors.primaryAccent}]}>
+        <Text style={[styles.copyLabel, {color: colors.canvas}]}>Copy</Text>
       </Pressable>
     </View>
   );

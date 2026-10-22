@@ -22,7 +22,7 @@ export function RootNavigator() {
       card: colors.canvas,
       text: colors.primaryText,
       border: colors.borderSoft,
-      primary: colors.primaryNavy,
+      primary: colors.primaryAccent,
     },
   };
 

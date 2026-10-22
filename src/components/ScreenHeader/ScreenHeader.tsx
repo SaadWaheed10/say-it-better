@@ -28,7 +28,7 @@ export function ScreenHeader({title, onBack, right}: Props) {
             <Svg width={ri(22)} height={ri(22)} viewBox="0 0 24 24">
               <Path
                 d="M15 18 l-6-6 6-6"
-                stroke={colors.primaryNavy}
+                stroke={colors.primaryAccent}
                 strokeWidth={2}
                 fill="none"
                 strokeLinecap="round"

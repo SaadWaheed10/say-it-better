@@ -7,10 +7,10 @@ import {useOnboardingWelcomeIllustrationStyles} from './OnboardingWelcomeIllustr
 export function OnboardingWelcomeIllustration() {
   const {colors, isDark} = useAppTheme();
   const styles = useOnboardingWelcomeIllustrationStyles();
-  const lavender = isDark ? '#3A4068' : '#D9DCFF';
-  const navy = isDark ? '#E8EAF5' : '#202653';
-  const card = colors.background;
-  const line = isDark ? '#8A90AE' : '#B7BBD4';
+  const wash = isDark ? colors.accentWash : colors.lavender;
+  const ink = colors.primaryText;
+  const card = colors.surfaceSolid;
+  const line = colors.secondaryText;
 
   return (
     <View style={styles.wrap} accessibilityLabel="Message improvement illustration">
@@ -21,8 +21,8 @@ export function OnboardingWelcomeIllustration() {
 
         <Path
           d="M40 120 C 70 70, 210 70, 240 120 C 210 155, 70 155, 40 120 Z"
-          fill={lavender}
-          opacity={0.55}
+          fill={wash}
+          opacity={0.9}
         />
         <Rect
           x="28"
@@ -30,7 +30,7 @@ export function OnboardingWelcomeIllustration() {
           width="88"
           height="72"
           rx="16"
-          fill={lavender}
+          fill={colors.lavender}
           transform="rotate(-8 72 84)"
         />
         <Path d="M42 68 h48" stroke={line} strokeWidth={4} strokeLinecap="round" />
@@ -39,12 +39,12 @@ export function OnboardingWelcomeIllustration() {
 
         <Path
           d="M118 92 C 140 70, 150 70, 168 88"
-          stroke={lavender}
+          stroke={colors.accentWarm}
           strokeWidth={4}
           fill="none"
           strokeLinecap="round"
         />
-        <Path d="M160 78 l12 12 -16 2 Z" fill={lavender} />
+        <Path d="M160 78 l12 12 -16 2 Z" fill={colors.accentWarm} />
 
         <Rect
           x="164"
@@ -63,19 +63,18 @@ export function OnboardingWelcomeIllustration() {
         <Circle cx="246" cy="48" r="10" fill={colors.primaryAccent} />
         <Path
           d="M241 48 l3.5 3.5 7-7"
-          stroke="#FFFFFF"
+          stroke={colors.canvas}
           strokeWidth={2}
           fill="none"
           strokeLinecap="round"
         />
         <Path
           d="M214 28 l4 10 10-2 -8 8 4 10 -10-5 -10 5 4-10 -8-8 10 2 Z"
-          fill={navy}
+          fill={colors.accentRose}
         />
-        <Circle cx="236" cy="22" r="2" fill={navy} />
-        <Circle cx="244" cy="28" r="1.5" fill={navy} />
+        <Circle cx="236" cy="22" r="2" fill={ink} />
+        <Circle cx="244" cy="28" r="1.5" fill={ink} />
       </Svg>
     </View>
   );
 }
-

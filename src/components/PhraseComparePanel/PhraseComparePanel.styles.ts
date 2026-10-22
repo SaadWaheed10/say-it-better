@@ -76,9 +76,13 @@ export function usePhraseComparePanelStyles() {
       alignSelf: 'stretch' as const,
       marginTop: rm(16),
       borderRadius: rr(16),
+      overflow: 'hidden' as const,
+    },
+    primaryCopyGradient: {
       paddingVertical: rp(14),
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
+      borderRadius: rr(16),
     },
     primaryCopyLabel: {
       fontSize: rf(15),

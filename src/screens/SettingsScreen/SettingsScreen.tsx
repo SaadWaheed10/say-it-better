@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {Alert, ScrollView, Switch, Text, View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppButton} from '../../components/AppButton';
 import {FadeIn} from '../../components/FadeIn';
@@ -84,6 +85,16 @@ export function SettingsScreen() {
           <Text style={[styles.title, {color: colors.primaryText}]}>
             Settings
           </Text>
+          <LinearGradient
+            colors={[
+              colors.primaryAccent,
+              colors.accentWarm,
+              colors.accentRose,
+            ]}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 0}}
+            style={styles.titleAccent}
+          />
         </FadeIn>
 
         <FadeIn delay={80}>
@@ -104,6 +115,11 @@ export function SettingsScreen() {
               value={themePreference === 'dark'}
               onValueChange={onThemeToggle}
               accessibilityLabel="Toggle dark mode"
+              trackColor={{
+                false: colors.border,
+                true: colors.primaryAccent,
+              }}
+              thumbColor={colors.white}
             />
           </View>
 

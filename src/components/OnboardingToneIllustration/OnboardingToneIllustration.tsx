@@ -50,7 +50,7 @@ export function OnboardingToneIllustration() {
                   borderColor: colors.borderSoft,
                 },
               ]}>
-              <ToneIcon name={tone.icon} color={colors.primaryNavy} size={14} />
+              <ToneIcon name={tone.icon} color={colors.primaryAccent} size={14} />
               <Text
                 style={[
                   typography.caption,
