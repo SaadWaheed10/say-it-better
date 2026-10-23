@@ -3,25 +3,40 @@
 SayItBetter runs **fully on-device**:
 
 - **English correction:** [`llama.rn`](https://github.com/mybigday/llama.rn) + **Qwen2.5-1.5B-Instruct** (GGUF)
-- **Voice dictation:** [`whisper.rn`](https://github.com/mybigday/whisper.rn) + **ggml-tiny.en.bin**
+- **Voice dictation / speak answers:** [`whisper.rn`](https://github.com/mybigday/whisper.rn) + **ggml-tiny.en.bin**
+- **Hear question / listening playback:** device TTS (`react-native-tts`) — no model file required
 
-No cloud AI API is used for rewrite or speech.
+No cloud AI API is used for rewrite or speech recognition.
 
-## Recommended: bundle into the app (APK / IPA)
+## Fresh clone checklist
+
+`.gguf` and Whisper `.bin` files are **gitignored**. After cloning:
 
 ```bash
-cd ~/Desktop/SayItBetter
+cd SayItBetter
+npm run setup:platforms   # deps + native bits + pods
+npm run bundle-model      # download + pack both models (once)
+npm start
+npm run ios               # or: npm run android
+```
+
+Without `bundle-model`, Improve Message / voice features will show model **missing** in Settings, and skill-test written grading / speak-answer will degrade.
+
+## Recommended: bundle into the app
+
+```bash
 npm run bundle-model    # downloads if needed, then copies into native assets
-npm run android         # or ios
+npm run android         # or ios — rebuild so assets are picked up
 ```
 
 What this does:
 
-1. Bundles `Qwen2.5-1.5B-Instruct-Q4_K_M.gguf` (~1GB) and `ggml-tiny.en.bin` (~74MB) into:
+1. Ensures files exist under `models/` (downloads from Hugging Face if absent).
+2. Copies into:
    - `android/app/src/main/assets/models/`
    - `ios/SayItBetter/Resources/`
-2. On first launch, the app extracts them into app Documents storage.
-3. Testers who install your build do **not** run copy commands.
+3. On first launch, the app extracts them into app Documents storage.
+4. Testers who install your build do **not** run copy commands.
 
 ### Release APK
 
@@ -31,26 +46,31 @@ npm run android:release
 
 Expect a **large** APK (well over 1GB) because both models ship inside the app.
 
-### Git
-
-`.gguf` / Whisper `.bin` files are **gitignored**. After cloning:
-
-```bash
-npm run bundle-model
-```
-
 ## Optional scripts
 
 | Script | Purpose |
 | --- | --- |
-| `npm run download-llm-model` | Download Qwen GGUF only |
-| `npm run download-whisper-model` | Download Whisper tiny.en only |
-| `npm run bundle-whisper-model` | Bundle Whisper only |
-| `npm run copy-model:ios` / `android` | Dev fallback push into Documents |
+| `npm run download-llm-model` | Download Qwen GGUF only → `models/` |
+| `npm run download-whisper-model` | Download Whisper tiny.en only → `models/` |
+| `npm run bundle-whisper-model` | Bundle Whisper only into native assets |
+| `npm run copy-model:ios` / `android` | Dev fallback: push into Documents on a running install |
 
 ## Model files
 
-- LLM: `Qwen2.5-1.5B-Instruct-Q4_K_M.gguf` (from [Qwen GGUF](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF))
-- Speech: `ggml-tiny.en.bin` (from [whisper.cpp models](https://huggingface.co/ggerganov/whisper.cpp))
+| Role | File | Approx size | Source |
+| --- | --- | --- | --- |
+| LLM | `Qwen2.5-1.5B-Instruct-Q4_K_M.gguf` | ~1GB | [Qwen GGUF](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF) |
+| Speech | `ggml-tiny.en.bin` | ~75MB | [whisper.cpp](https://huggingface.co/ggerganov/whisper.cpp) |
 
-Mic permission is requested only when the user taps the microphone on Correct phrase.
+## Permissions
+
+- **Microphone** is requested when the user taps speak / dictate (Improve Message or skill tests).
+- **iOS:** `NSMicrophoneUsageDescription` in `Info.plist`
+- **Android:** `RECORD_AUDIO` in the manifest + runtime prompt
+
+## Verify it worked
+
+1. Open **Settings → Local AI Model** — status should become `ready` after first load.
+2. Improve a short sentence — you should get a corrected phrase.
+3. Tap **Dictate** / **Speak answer** — mic prompt, then on-device transcription.
+4. In Tests, **Hear question** uses system TTS (no Whisper/LLM required).
