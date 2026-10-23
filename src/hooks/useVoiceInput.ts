@@ -50,6 +50,10 @@ export function useVoiceInput({onTranscript, onError}: Options) {
       const text = await stopRecording();
       if (text) {
         onTranscript(text);
+      } else {
+        onError?.(
+          'No speech detected. Try again, or type / tap your answer.',
+        );
       }
     } catch (error) {
       const message =

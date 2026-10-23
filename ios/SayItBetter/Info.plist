@@ -37,7 +37,7 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>SayItBetter uses the microphone to dictate messages on your device. Audio is transcribed locally and is never sent to a server.</string>
+	<string>SayItBetter uses the microphone to dictate messages and speak answers in skill tests. Audio is transcribed on your device and is never sent to a server.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

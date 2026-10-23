@@ -9,6 +9,7 @@ import {
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import Svg, {Path, Rect} from 'react-native-svg';
 import {AppButton} from '../../components/AppButton';
 import {showAppAlert} from '../../components/AppModal';
 import {LoadingView} from '../../components/LoadingView';
@@ -30,13 +31,19 @@ import {
   isModelReadyForWritten,
   savePausedSession,
   saveTestAttempt,
+  matchSpokenChoice,
   scoreFillBlank,
   scoreListening,
   scoreMcq,
   scoreWritten,
   scoreWrittenOffline,
 } from '../../services/testService';
-import {speakText, stopSpeaking} from '../../services/ttsService';
+import {
+  speakText,
+  stopSpeaking,
+  subscribeSpeaking,
+} from '../../services/ttsService';
+import {ri} from '../../theme/useScaledStyles';
 import {
   RootStackParamList,
   TestAnswerRecord,
@@ -60,6 +67,313 @@ function kindLabel(kind: TestQuestion['kind']): string {
   return 'Written';
 }
 
+/** Spoken narration so learners can hear the question instead of reading. */
+function buildQuestionNarration(question: TestQuestion): string {
+  const optionLine = (options: string[]) =>
+    options
+      .map((option, i) => `Option ${String.fromCharCode(65 + i)}: ${option}`)
+      .join('. ');
+
+  if (question.kind === 'mcq') {
+    return `${question.prompt}. ${optionLine(question.options)}`;
+  }
+  if (question.kind === 'fill') {
+    const sentence = question.sentence.replace(/_+/g, 'blank');
+    return `${question.prompt}. The sentence is: ${sentence}. ${optionLine(question.options)}`;
+  }
+  if (question.kind === 'listening') {
+    return `${question.prompt}. Then play the listening audio when you are ready.`;
+  }
+  return `${question.prompt}. Rough version: ${question.rough}. Hint: ${question.hint}`;
+}
+
+type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
+type RunnerStyles = ReturnType<typeof useTestRunnerScreenStyles>;
+
+function SpeakerIcon({color, size = 16}: {color: string; size?: number}) {
+  return (
+    <Svg width={ri(size)} height={ri(size)} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M11 5L6 9H3v6h3l5 4V5z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M15.5 8.5a5 5 0 010 7M18.5 6a9 9 0 010 12"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+function MicIcon({color, size = 16}: {color: string; size?: number}) {
+  return (
+    <Svg width={ri(size)} height={ri(size)} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 3a3 3 0 00-3 3v6a3 3 0 006 0V6a3 3 0 00-3-3z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M5 11a7 7 0 0014 0M12 18v3"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+function StopIcon({color, size = 14}: {color: string; size?: number}) {
+  return (
+    <Svg width={ri(size)} height={ri(size)} viewBox="0 0 24 24" fill="none">
+      <Rect x={6} y={6} width={12} height={12} rx={2} fill={color} />
+    </Svg>
+  );
+}
+
+type AudioTone = 'teal' | 'warm' | 'rose' | 'muted';
+
+function audioPalette(tone: AudioTone, colors: ThemeColors) {
+  if (tone === 'teal') {
+    return {
+      bg: colors.accentWash,
+      border: `${colors.primaryAccent}66`,
+      iconBg: `${colors.primaryAccent}28`,
+      fg: colors.primaryAccent,
+    };
+  }
+  if (tone === 'warm') {
+    return {
+      bg: colors.warmWash,
+      border: `${colors.accentWarm}66`,
+      iconBg: `${colors.accentWarm}28`,
+      fg: colors.accentWarm,
+    };
+  }
+  if (tone === 'rose') {
+    return {
+      bg: colors.errorSoft,
+      border: `${colors.accentRose}66`,
+      iconBg: `${colors.accentRose}28`,
+      fg: colors.accentRose,
+    };
+  }
+  return {
+    bg: colors.surfaceSolid,
+    border: colors.borderSoft,
+    iconBg: colors.navyWash,
+    fg: colors.secondaryText,
+  };
+}
+
+type AudioActionButtonProps = {
+  label: string;
+  sublabel?: string;
+  icon: 'speaker' | 'mic' | 'stop';
+  onPress: () => void;
+  disabled?: boolean;
+  tone: AudioTone;
+  colors: ThemeColors;
+  styles: RunnerStyles;
+  pair?: boolean;
+};
+
+function AudioActionButton({
+  label,
+  sublabel,
+  icon,
+  onPress,
+  disabled,
+  tone,
+  colors,
+  styles,
+  pair,
+}: AudioActionButtonProps) {
+  const palette = audioPalette(tone, colors);
+  const iconEl =
+    icon === 'speaker' ? (
+      <SpeakerIcon color={palette.fg} size={18} />
+    ) : icon === 'mic' ? (
+      <MicIcon color={palette.fg} size={18} />
+    ) : (
+      <StopIcon color={palette.fg} size={16} />
+    );
+
+  return (
+    <PressScale
+      disabled={disabled}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={[
+        pair ? styles.audioPairBtn : styles.audioBtn,
+        {
+          backgroundColor: palette.bg,
+          borderColor: palette.border,
+          opacity: disabled ? 0.45 : 1,
+        },
+      ]}>
+      <View style={styles.audioBtnInner}>
+        <View style={[styles.audioIconWrap, {backgroundColor: palette.iconBg}]}>
+          {iconEl}
+        </View>
+        <View style={styles.audioChipTextCol}>
+          <Text
+            style={[styles.audioChipLabel, {color: palette.fg}]}
+            numberOfLines={1}>
+            {label}
+          </Text>
+          {sublabel ? (
+            <Text
+              style={[styles.audioChipSub, {color: colors.secondaryText}]}
+              numberOfLines={1}>
+              {sublabel}
+            </Text>
+          ) : null}
+        </View>
+      </View>
+    </PressScale>
+  );
+}
+
+type QuestionAudioBarProps = {
+  speaking: boolean;
+  onHear: () => void;
+  onStop: () => void;
+  colors: ThemeColors;
+  styles: RunnerStyles;
+};
+
+function QuestionAudioBar({
+  speaking,
+  onHear,
+  onStop,
+  colors,
+  styles,
+}: QuestionAudioBarProps) {
+  const stopPalette = audioPalette(speaking ? 'rose' : 'muted', colors);
+  return (
+    <View style={styles.audioStack}>
+      <View style={styles.audioRow}>
+        <PressScale
+          onPress={onHear}
+          accessibilityRole="button"
+          accessibilityLabel={speaking ? 'Playing question' : 'Hear question'}
+          style={[
+            styles.audioRowMain,
+            {
+              backgroundColor: audioPalette('teal', colors).bg,
+              borderColor: audioPalette('teal', colors).border,
+            },
+          ]}>
+          <View style={styles.audioBtnInner}>
+            <View
+              style={[
+                styles.audioIconWrap,
+                {backgroundColor: audioPalette('teal', colors).iconBg},
+              ]}>
+              <SpeakerIcon color={audioPalette('teal', colors).fg} size={16} />
+            </View>
+            <View style={styles.audioChipTextCol}>
+              <Text
+                style={[
+                  styles.audioChipLabel,
+                  {color: audioPalette('teal', colors).fg},
+                ]}
+                numberOfLines={1}>
+                {speaking ? 'Playing…' : 'Hear question'}
+              </Text>
+            </View>
+          </View>
+        </PressScale>
+        <PressScale
+          disabled={!speaking}
+          onPress={onStop}
+          accessibilityRole="button"
+          accessibilityLabel="Stop audio"
+          style={[
+            styles.audioRowSide,
+            {
+              backgroundColor: stopPalette.bg,
+              borderColor: stopPalette.border,
+              opacity: speaking ? 1 : 0.4,
+            },
+          ]}>
+          <View style={styles.audioRowSideInner}>
+            <StopIcon color={stopPalette.fg} size={14} />
+            <Text style={[styles.audioRowSideLabel, {color: stopPalette.fg}]}>
+              Stop
+            </Text>
+          </View>
+        </PressScale>
+      </View>
+    </View>
+  );
+}
+
+type VoiceControlsProps = {
+  voice: ReturnType<typeof useVoiceInput>;
+  disabled?: boolean;
+  colors: ThemeColors;
+  styles: RunnerStyles;
+};
+
+function VoiceControls({voice, disabled, colors, styles}: VoiceControlsProps) {
+  if (voice.isRecording) {
+    return (
+      <View style={styles.audioStack}>
+        <View style={styles.audioPair}>
+          <AudioActionButton
+            icon="mic"
+            label="Done"
+            tone="warm"
+            pair
+            onPress={() => {
+              void voice.stop();
+            }}
+            colors={colors}
+            styles={styles}
+          />
+          <AudioActionButton
+            icon="stop"
+            label="Cancel"
+            tone="rose"
+            pair
+            onPress={() => {
+              void voice.cancel();
+            }}
+            colors={colors}
+            styles={styles}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  const busy = voice.isTranscribing || voice.isLoadingModel;
+  return (
+    <View style={styles.audioStack}>
+      <AudioActionButton
+        icon="mic"
+        label={busy ? 'Listening…' : 'Speak answer'}
+        tone="warm"
+        disabled={disabled || voice.busy || busy}
+        onPress={() => {
+          void stopSpeaking();
+          void voice.begin();
+        }}
+        colors={colors}
+        styles={styles}
+      />
+    </View>
+  );
+}
+
 export function TestRunnerScreen({navigation, route}: Props) {
   const {colors} = useAppTheme();
   const styles = useTestRunnerScreenStyles();
@@ -74,27 +388,71 @@ export function TestRunnerScreen({navigation, route}: Props) {
   const [grading, setGrading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  const [speaking, setSpeaking] = useState(false);
   const timedRef = useRef(Boolean(route.params.timed));
   const mcqOnlyRef = useRef(Boolean(route.params.mcqOnly));
   const difficultyRef = useRef(route.params.difficulty);
   const isDailyRef = useRef(Boolean(route.params.isDaily));
   const finishingRef = useRef(false);
 
+  useEffect(() => subscribeSpeaking(setSpeaking), []);
+  const voiceContextRef = useRef({
+    questions,
+    index,
+    mcqFeedback,
+  });
+  voiceContextRef.current = {questions, index, mcqFeedback};
+
   const voice = useVoiceInput({
     onTranscript: text => {
-      setWritten(prev => {
-        const next = prev.trim().length > 0 ? `${prev.trim()} ${text}` : text;
-        return next;
-      });
+      const {
+        questions: qs,
+        index: qi,
+        mcqFeedback: feedback,
+      } = voiceContextRef.current;
+      const q = qs[qi];
+      if (!q) {
+        return;
+      }
+
+      if (q.kind === 'written') {
+        setWritten(prev => {
+          const next = prev.trim().length > 0 ? `${prev.trim()} ${text}` : text;
+          return next;
+        });
+        setError(null);
+        return;
+      }
+
+      if (feedback) {
+        return;
+      }
+
+      const matched = matchSpokenChoice(text, q.options);
+      if (matched == null) {
+        setError(
+          `Couldn't match “${text.trim()}”. Say A–D, 1–4, or the option text.`,
+        );
+        return;
+      }
+      setSelectedMcq(matched);
+      hapticSelection();
       setError(null);
     },
     onError: detail => setError(detail),
   });
 
-  const goToTestsTab = useCallback(() => {
+  const cancelVoice = voice.cancel;
+
+  const stopAudioSession = useCallback(() => {
     void stopSpeaking();
+    void cancelVoice();
+  }, [cancelVoice]);
+
+  const goToTestsTab = useCallback(() => {
+    stopAudioSession();
     navigation.navigate('MainTabs', {screen: 'Tests'});
-  }, [navigation]);
+  }, [navigation, stopAudioSession]);
 
   const pauseAndLeave = useCallback(async () => {
     if (!pack || questions.length === 0) {
@@ -114,17 +472,25 @@ export function TestRunnerScreen({navigation, route}: Props) {
       questionCount: route.params.questionCount,
       savedAt: Date.now(),
     });
-    void stopSpeaking();
-    goToTestsTab();
+    stopAudioSession();
+    navigation.navigate('MainTabs', {screen: 'Tests'});
   }, [
     answers,
-    goToTestsTab,
     index,
+    navigation,
     pack,
     questions,
     route.params.questionCount,
     secondsLeft,
+    stopAudioSession,
   ]);
+
+  useEffect(() => {
+    return () => {
+      void stopSpeaking();
+      void cancelVoice();
+    };
+  }, [cancelVoice]);
 
   const confirmLeave = useCallback(() => {
     showAppAlert('Leave test?', 'You can pause and resume later, or leave now.', [
@@ -505,6 +871,30 @@ export function TestRunnerScreen({navigation, route}: Props) {
             {current.prompt}
           </Text>
 
+          <QuestionAudioBar
+            speaking={speaking}
+            colors={colors}
+            styles={styles}
+            onHear={() => {
+              hapticSelection();
+              void cancelVoice();
+              void (async () => {
+                const played = await speakText(
+                  buildQuestionNarration(current),
+                );
+                if (!played) {
+                  showAppAlert(
+                    'Audio unavailable',
+                    'Could not play speech on this device. You can still read the question.',
+                  );
+                }
+              })();
+            }}
+            onStop={() => {
+              void stopSpeaking();
+            }}
+          />
+
           {current.kind === 'fill' ? (
             <Text
               style={[
@@ -521,24 +911,76 @@ export function TestRunnerScreen({navigation, route}: Props) {
           ) : null}
 
           {current.kind === 'listening' ? (
-            <View style={styles.voiceRow}>
-              <AppButton
-                label="Play audio"
-                variant="secondary"
-                onPress={() => {
-                  hapticSelection();
-                  void speakText(current.speakText);
-                }}
-                style={styles.voiceBtn}
-              />
-              <AppButton
-                label="Replay"
-                variant="ghost"
-                onPress={() => {
-                  void speakText(current.speakText);
-                }}
-                style={styles.voiceBtn}
-              />
+            <View style={styles.audioStack}>
+              <View style={styles.audioRow}>
+                <PressScale
+                  onPress={() => {
+                    hapticSelection();
+                    void cancelVoice();
+                    void (async () => {
+                      const played = await speakText(current.speakText);
+                      if (!played) {
+                        showAppAlert(
+                          'Audio unavailable',
+                          'Could not play listening audio on this device.',
+                        );
+                      }
+                    })();
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Play listening"
+                  style={[
+                    styles.audioRowMain,
+                    {
+                      backgroundColor: audioPalette('teal', colors).bg,
+                      borderColor: audioPalette('teal', colors).border,
+                    },
+                  ]}>
+                  <View style={styles.audioBtnInner}>
+                    <View
+                      style={[
+                        styles.audioIconWrap,
+                        {backgroundColor: audioPalette('teal', colors).iconBg},
+                      ]}>
+                      <SpeakerIcon
+                        color={audioPalette('teal', colors).fg}
+                        size={16}
+                      />
+                    </View>
+                    <Text
+                      style={[
+                        styles.audioChipLabel,
+                        {color: audioPalette('teal', colors).fg},
+                      ]}
+                      numberOfLines={1}>
+                      {speaking ? 'Playing clip…' : 'Play listening'}
+                    </Text>
+                  </View>
+                </PressScale>
+                <PressScale
+                  onPress={() => {
+                    void speakText(current.speakText);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Replay"
+                  style={[
+                    styles.audioRowSide,
+                    {
+                      backgroundColor: audioPalette('muted', colors).bg,
+                      borderColor: audioPalette('muted', colors).border,
+                    },
+                  ]}>
+                  <View style={styles.audioRowSideInner}>
+                    <Text
+                      style={[
+                        styles.audioRowSideLabel,
+                        {color: audioPalette('muted', colors).fg},
+                      ]}>
+                      Replay
+                    </Text>
+                  </View>
+                </PressScale>
+              </View>
             </View>
           ) : null}
 
@@ -566,7 +1008,7 @@ export function TestRunnerScreen({navigation, route}: Props) {
                     setError(null);
                   }
                 }}
-                placeholder="Type or dictate your corrected version…"
+                placeholder="Type or speak your corrected version…"
                 placeholderTextColor={colors.secondaryText}
                 multiline
                 style={[
@@ -578,49 +1020,24 @@ export function TestRunnerScreen({navigation, route}: Props) {
                   },
                 ]}
               />
-              <View style={styles.voiceRow}>
-                {voice.isRecording ? (
-                  <>
-                    <AppButton
-                      label="Stop"
-                      onPress={() => {
-                        void voice.stop();
-                      }}
-                      style={styles.voiceBtn}
-                    />
-                    <AppButton
-                      label="Cancel"
-                      variant="secondary"
-                      onPress={() => {
-                        void voice.cancel();
-                      }}
-                      style={styles.voiceBtn}
-                    />
-                  </>
-                ) : (
-                  <AppButton
-                    label={
-                      voice.isTranscribing || voice.isLoadingModel
-                        ? 'Listening…'
-                        : 'Dictate answer'
-                    }
-                    variant="secondary"
-                    disabled={voice.busy || voice.isTranscribing}
-                    onPress={() => {
-                      void voice.begin();
-                    }}
-                  />
-                )}
-              </View>
+              <VoiceControls
+                voice={voice}
+                colors={colors}
+                styles={styles}
+              />
             </>
           ) : (
             <View>
+              <Text style={[styles.hint, {color: colors.secondaryText}]}>
+                Tap an option or speak your answer (A–D, or the option text)
+              </Text>
               {choiceOptions.map((option, optionIndex) => {
                 const selected = selectedMcq === optionIndex;
                 const revealed = Boolean(mcqFeedback);
                 const isCorrectOption = optionIndex === correctIndex;
                 const showGood = revealed && isCorrectOption;
                 const showBad = revealed && selected && !isCorrectOption;
+                const letter = String.fromCharCode(65 + optionIndex);
                 return (
                   <PressScale
                     key={`${current.id}-${optionIndex}`}
@@ -664,11 +1081,18 @@ export function TestRunnerScreen({navigation, route}: Props) {
                             selected || showGood || showBad ? '700' : '400',
                         },
                       ]}>
-                      {option}
+                      {letter}. {option}
                     </Text>
                   </PressScale>
                 );
               })}
+              {!mcqFeedback ? (
+                <VoiceControls
+                  voice={voice}
+                  colors={colors}
+                  styles={styles}
+                />
+              ) : null}
               {mcqFeedback ? (
                 <View
                   style={[
@@ -722,7 +1146,9 @@ export function TestRunnerScreen({navigation, route}: Props) {
             />
             {isChoice && !mcqFeedback ? (
               <Pressable
-                onPress={() => setError('Choose an answer, then Check.')}>
+                onPress={() =>
+                  setError('Choose or speak an answer, then Check.')
+                }>
                 <Text style={[styles.hint, {color: colors.tabInactive}]}>
                   Instant feedback after you check
                 </Text>

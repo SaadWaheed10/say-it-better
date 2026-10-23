@@ -103,7 +103,7 @@ async function requestMicrophonePermission(): Promise<boolean> {
     {
       title: 'Microphone permission',
       message:
-        'SayItBetter needs the microphone to dictate messages on this device. Audio stays on your phone.',
+        'SayItBetter needs the microphone to dictate messages and speak answers in skill tests. Audio stays on your phone.',
       buttonPositive: 'Allow',
       buttonNegative: 'Deny',
     },

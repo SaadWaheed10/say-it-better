@@ -407,6 +407,97 @@ export function similarityScore(a: string, b: string): number {
   return union === 0 ? 0 : inter / union;
 }
 
+function normalizeChoiceText(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[—–−]/g, '-')
+    .replace(/[^a-z0-9\s'-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Map a spoken answer onto an MCQ / fill / listening option.
+ * Accepts letters (A–D), numbers (1–4), ordinals, or option text.
+ */
+export function matchSpokenChoice(
+  transcript: string,
+  options: string[],
+): number | null {
+  if (!options.length) {
+    return null;
+  }
+  const raw = transcript.trim().toLowerCase();
+  const spoken = normalizeChoiceText(transcript);
+  if (!spoken) {
+    return null;
+  }
+
+  const letterMatch = raw.match(
+    /(?:^|\b)(?:option|answer|choice)?\s*([a-d])(?:\b|$)/i,
+  );
+  if (letterMatch) {
+    const idx = letterMatch[1].toLowerCase().charCodeAt(0) - 97;
+    if (idx >= 0 && idx < options.length) {
+      return idx;
+    }
+  }
+
+  const numberMatch = raw.match(
+    /(?:^|\b)(?:option|answer|choice|number)?\s*([1-4]|one|two|three|four|first|second|third|fourth)(?:\b|$)/i,
+  );
+  if (numberMatch) {
+    const token = numberMatch[1].toLowerCase();
+    const map: Record<string, number> = {
+      '1': 0,
+      one: 0,
+      first: 0,
+      '2': 1,
+      two: 1,
+      second: 1,
+      '3': 2,
+      three: 2,
+      third: 2,
+      '4': 3,
+      four: 3,
+      fourth: 3,
+    };
+    const idx = map[token];
+    if (idx != null && idx < options.length) {
+      return idx;
+    }
+  }
+
+  // Exact / contains match on option text
+  let bestIndex = -1;
+  let bestScore = 0;
+  options.forEach((option, index) => {
+    const opt = normalizeChoiceText(option);
+    if (!opt) {
+      return;
+    }
+    if (spoken === opt || spoken.includes(opt) || opt.includes(spoken)) {
+      const score = Math.max(spoken.length, opt.length) / Math.min(spoken.length, opt.length);
+      const quality = 1 / score + (spoken === opt ? 2 : 0);
+      if (quality > bestScore) {
+        bestScore = quality;
+        bestIndex = index;
+      }
+      return;
+    }
+    const sim = similarityScore(spoken, opt);
+    if (sim > bestScore) {
+      bestScore = sim;
+      bestIndex = index;
+    }
+  });
+
+  if (bestIndex >= 0 && bestScore >= 0.45) {
+    return bestIndex;
+  }
+  return null;
+}
+
 function parseAiScore(text: string): number | null {
   const match = text.match(/SCORE\s*[:=]\s*(0(?:\.5)?|1|0\.0|1\.0)/i);
   if (!match) {
