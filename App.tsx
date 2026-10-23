@@ -2,6 +2,7 @@ import React from 'react';
 import {StatusBar} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {PixelFlowProvider, configure} from 'react-native-pixelflow';
+import {AppModalProvider} from './src/components/AppModal';
 import {ThemeProvider, useAppTheme} from './src/hooks/useAppTheme';
 import {RootNavigator} from './src/navigation/RootNavigator';
 
@@ -12,10 +13,10 @@ function AppShell() {
   const {isDark} = useAppTheme();
 
   return (
-    <>
+    <AppModalProvider>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <RootNavigator />
-    </>
+    </AppModalProvider>
   );
 }
 

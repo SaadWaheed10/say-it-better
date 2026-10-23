@@ -90,7 +90,16 @@ export type TestSkill =
   | 'travel'
   | 'interview';
 
-export type TestDifficulty = 'easy' | 'medium';
+export type TestDifficulty = 'easy' | 'medium' | 'hard';
+
+export type WrittenTipTag =
+  | 'tense'
+  | 'word-order'
+  | 'tone'
+  | 'article'
+  | 'agreement'
+  | 'clarity'
+  | 'word-choice';
 
 export type McqQuestion = {
   id: string;
@@ -111,11 +120,38 @@ export type WrittenQuestion = {
   rough: string;
   hint: string;
   tone: ToneId;
+  tipTag?: WrittenTipTag;
+};
+
+export type FillBlankQuestion = {
+  id: string;
+  skill: TestSkill;
+  difficulty?: TestDifficulty;
+  prompt: string;
+  /** Sentence with _____ for the blank */
+  sentence: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+};
+
+export type ListeningQuestion = {
+  id: string;
+  skill: TestSkill;
+  difficulty?: TestDifficulty;
+  prompt: string;
+  /** Spoken by on-device TTS */
+  speakText: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
 };
 
 export type TestQuestion =
   | ({kind: 'mcq'} & McqQuestion)
-  | ({kind: 'written'} & WrittenQuestion);
+  | ({kind: 'written'} & WrittenQuestion)
+  | ({kind: 'fill'} & FillBlankQuestion)
+  | ({kind: 'listening'} & ListeningQuestion);
 
 export type TestPack = {
   id: string;
@@ -125,15 +161,19 @@ export type TestPack = {
   totalQuestions: number;
   mcqCount: number;
   writtenCount: number;
+  fillCount?: number;
+  listeningCount?: number;
   skillFilter?: TestSkill[];
   difficulty?: TestDifficulty | 'all';
   timedSeconds?: number;
   accent: 'teal' | 'amber' | 'rose';
+  isPlacement?: boolean;
+  isDaily?: boolean;
 };
 
 export type TestAnswerRecord = {
   questionId: string;
-  kind: 'mcq' | 'written';
+  kind: 'mcq' | 'written' | 'fill' | 'listening';
   skill: TestSkill;
   earned: number;
   max: number;
@@ -141,7 +181,15 @@ export type TestAnswerRecord = {
   userWritten?: string;
   modelAnswer?: string;
   explanation?: string;
+  tipTag?: WrittenTipTag;
   correct?: boolean;
+};
+
+export type SkillScoreBreakdown = {
+  skill: TestSkill;
+  earned: number;
+  max: number;
+  percent: number;
 };
 
 export type TestAttempt = {
@@ -152,11 +200,29 @@ export type TestAttempt = {
   maxScore: number;
   answers: TestAnswerRecord[];
   weakSkills: TestSkill[];
+  skillBreakdown: SkillScoreBreakdown[];
   suggestions: string[];
   questionIds: string[];
   createdAt: number;
   timed?: boolean;
   mcqOnly?: boolean;
+  difficulty?: TestDifficulty | 'all';
+  isDaily?: boolean;
+  isPlacement?: boolean;
+};
+
+export type PausedTestSession = {
+  packId: string;
+  packTitle: string;
+  questions: TestQuestion[];
+  answers: TestAnswerRecord[];
+  index: number;
+  secondsLeft: number | null;
+  timed: boolean;
+  mcqOnly: boolean;
+  difficulty?: TestDifficulty | 'all';
+  questionCount?: number;
+  savedAt: number;
 };
 
 export type TestBadgeId =
@@ -181,8 +247,13 @@ export type TestProgressSnapshot = {
   streakDays: number;
   bestByPack: Record<string, number>;
   badges: TestBadge[];
+  allBadges: TestBadge[];
   todayDone: boolean;
+  dailyChallengeDone: boolean;
   recommendedPackId: string;
+  adaptiveDifficulty: TestDifficulty;
+  placementDone: boolean;
+  pausedSession: PausedTestSession | null;
 };
 
 export type AppSettings = {
@@ -191,6 +262,7 @@ export type AppSettings = {
   onboardingCompleted: boolean;
   modelPathOverride?: string;
   improveTipDismissed?: boolean;
+  dailyTestReminder?: boolean;
 };
 
 export type MainTabParamList = {
@@ -229,8 +301,12 @@ export type RootStackParamList = {
     mcqOnly?: boolean;
     difficulty?: TestDifficulty | 'all';
     mistakeQuestionIds?: string[];
+    questionCount?: 5 | 10 | 15;
+    resume?: boolean;
+    isDaily?: boolean;
   };
   TestResults: {attemptId: string};
+  TestBadges: undefined;
 };
 
 export type OnboardingStackParamList = {

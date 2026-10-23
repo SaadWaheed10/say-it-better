@@ -1,9 +1,10 @@
 import React, {useMemo, useState} from 'react';
-import {Alert, Pressable, Text, TextInput, View} from 'react-native';
+import {Pressable, Text, TextInput, View} from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppButton} from '../../components/AppButton';
+import {showAppAlert} from '../../components/AppModal';
 import {FadeIn} from '../../components/FadeIn';
 import {LoadingView} from '../../components/LoadingView';
 import {MessageInput} from '../../components/MessageInput';
@@ -138,7 +139,7 @@ export function ImproveMessageScreen({navigation, route}: Props) {
       const detail =
         err instanceof Error ? err.message : 'Something went wrong.';
       setError(detail);
-      Alert.alert('Could not improve message', detail);
+      showAppAlert('Could not improve message', detail);
     } finally {
       setLoading(false);
     }

@@ -1,9 +1,10 @@
 import React, {useCallback, useState} from 'react';
-import {Alert, Pressable, ScrollView, Share, Text, View} from 'react-native';
+import {Pressable, ScrollView, Share, Text, View} from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {useFocusEffect} from '@react-navigation/native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {showAppAlert} from '../../components/AppModal';
 import {EmptyState} from '../../components/EmptyState';
 import {FadeIn} from '../../components/FadeIn';
 import {ScreenBackdrop} from '../../components/ScreenBackdrop';
@@ -37,7 +38,7 @@ export function LibraryScreen({navigation}: Props) {
   );
 
   const onClear = () => {
-    Alert.alert('Clear library?', 'Remove all saved phrases from this device.', [
+    showAppAlert('Clear library?', 'Remove all saved phrases from this device.', [
       {text: 'Cancel', style: 'cancel'},
       {
         text: 'Clear',

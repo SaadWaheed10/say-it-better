@@ -42,6 +42,7 @@ function normalizeSettings(raw: Partial<AppSettings> | null): AppSettings {
         ? raw.modelPathOverride
         : undefined,
     improveTipDismissed: Boolean(raw.improveTipDismissed),
+    dailyTestReminder: Boolean(raw.dailyTestReminder),
   };
 }
 

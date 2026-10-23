@@ -1,9 +1,10 @@
 import React, {useMemo, useState} from 'react';
-import {Alert, Text, TextInput, View} from 'react-native';
+import {Text, TextInput, View} from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppButton} from '../../components/AppButton';
+import {showAppAlert} from '../../components/AppModal';
 import {FadeIn} from '../../components/FadeIn';
 import {LoadingView} from '../../components/LoadingView';
 import {ScreenBackdrop} from '../../components/ScreenBackdrop';
@@ -53,7 +54,7 @@ export function PracticeScreen({navigation}: Props) {
       const detail =
         err instanceof Error ? err.message : 'Could not check your practice.';
       setError(detail);
-      Alert.alert('Practice check failed', detail);
+      showAppAlert('Practice check failed', detail);
     } finally {
       setLoading(false);
     }

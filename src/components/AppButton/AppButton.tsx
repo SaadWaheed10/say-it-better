@@ -17,6 +17,8 @@ type Props = {
   accessibilityLabel?: string;
   style?: ViewStyle;
   iconRight?: string;
+  /** Optional override for non-primary label color */
+  labelColor?: string;
 };
 
 export function AppButton({
@@ -28,6 +30,7 @@ export function AppButton({
   accessibilityLabel,
   style,
   iconRight,
+  labelColor,
 }: Props) {
   const {colors, typography, isDark} = useAppTheme();
   const styles = useAppButtonStyles();
@@ -35,7 +38,10 @@ export function AppButton({
   const hero = isDark ? [...darkGradientHero] : [...lightGradientHero];
 
   const textColor =
-    variant === 'primary' ? colors.black : colors.primaryText;
+    variant === 'primary'
+      ? colors.black
+      : labelColor ??
+        (variant === 'ghost' ? colors.primaryAccent : colors.primaryText);
 
   const content = loading ? (
     <ActivityIndicator color={textColor} />
@@ -91,8 +97,7 @@ export function AppButton({
           typography.button,
           styles.label,
           {
-            color:
-              variant === 'ghost' ? colors.primaryAccent : colors.primaryText,
+            color: textColor,
           },
         ]}>
         {label}

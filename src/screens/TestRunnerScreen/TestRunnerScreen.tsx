@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
-  Alert,
   BackHandler,
   Pressable,
   Text,
@@ -11,22 +10,33 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppButton} from '../../components/AppButton';
+import {showAppAlert} from '../../components/AppModal';
 import {LoadingView} from '../../components/LoadingView';
 import {PressScale} from '../../components/PressScale';
 import {ScreenBackdrop} from '../../components/ScreenBackdrop';
 import {ScreenHeader} from '../../components/ScreenHeader';
 import {useAppTheme} from '../../hooks/useAppTheme';
 import {useVoiceInput} from '../../hooks/useVoiceInput';
-import {hapticLight, hapticSelection, hapticSuccess} from '../../services/hapticService';
+import {
+  hapticLight,
+  hapticSelection,
+  hapticSuccess,
+} from '../../services/hapticService';
 import {
   buildRandomTestSession,
+  clearPausedSession,
   finalizeAttempt,
+  getPausedSession,
   isModelReadyForWritten,
+  savePausedSession,
   saveTestAttempt,
+  scoreFillBlank,
+  scoreListening,
   scoreMcq,
   scoreWritten,
   scoreWrittenOffline,
 } from '../../services/testService';
+import {speakText, stopSpeaking} from '../../services/ttsService';
 import {
   RootStackParamList,
   TestAnswerRecord,
@@ -36,6 +46,19 @@ import {
 import {useTestRunnerScreenStyles} from './TestRunnerScreen.styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TestRunner'>;
+
+function kindLabel(kind: TestQuestion['kind']): string {
+  if (kind === 'mcq') {
+    return 'Multiple choice';
+  }
+  if (kind === 'fill') {
+    return 'Fill in the blank';
+  }
+  if (kind === 'listening') {
+    return 'Listening';
+  }
+  return 'Written';
+}
 
 export function TestRunnerScreen({navigation, route}: Props) {
   const {colors} = useAppTheme();
@@ -53,6 +76,9 @@ export function TestRunnerScreen({navigation, route}: Props) {
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const timedRef = useRef(Boolean(route.params.timed));
   const mcqOnlyRef = useRef(Boolean(route.params.mcqOnly));
+  const difficultyRef = useRef(route.params.difficulty);
+  const isDailyRef = useRef(Boolean(route.params.isDaily));
+  const finishingRef = useRef(false);
 
   const voice = useVoiceInput({
     onTranscript: text => {
@@ -66,15 +92,59 @@ export function TestRunnerScreen({navigation, route}: Props) {
   });
 
   const goToTestsTab = useCallback(() => {
+    void stopSpeaking();
     navigation.navigate('MainTabs', {screen: 'Tests'});
   }, [navigation]);
 
+  const pauseAndLeave = useCallback(async () => {
+    if (!pack || questions.length === 0) {
+      goToTestsTab();
+      return;
+    }
+    await savePausedSession({
+      packId: pack.id,
+      packTitle: pack.title,
+      questions,
+      answers,
+      index,
+      secondsLeft,
+      timed: timedRef.current,
+      mcqOnly: mcqOnlyRef.current,
+      difficulty: difficultyRef.current,
+      questionCount: route.params.questionCount,
+      savedAt: Date.now(),
+    });
+    void stopSpeaking();
+    goToTestsTab();
+  }, [
+    answers,
+    goToTestsTab,
+    index,
+    pack,
+    questions,
+    route.params.questionCount,
+    secondsLeft,
+  ]);
+
   const confirmLeave = useCallback(() => {
-    Alert.alert('Leave test?', 'Progress for this run will be lost.', [
+    showAppAlert('Leave test?', 'You can pause and resume later, or leave now.', [
       {text: 'Stay', style: 'cancel'},
-      {text: 'Leave', style: 'destructive', onPress: goToTestsTab},
+      {
+        text: 'Pause & save',
+        onPress: () => {
+          void pauseAndLeave();
+        },
+      },
+      {
+        text: 'Leave without saving',
+        style: 'destructive',
+        onPress: () => {
+          void clearPausedSession();
+          goToTestsTab();
+        },
+      },
     ]);
-  }, [goToTestsTab]);
+  }, [goToTestsTab, pauseAndLeave]);
 
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -92,16 +162,53 @@ export function TestRunnerScreen({navigation, route}: Props) {
     let cancelled = false;
     (async () => {
       try {
+        if (route.params.resume) {
+          const paused = await getPausedSession();
+          if (!paused) {
+            throw new Error('No paused test to resume.');
+          }
+          if (cancelled) {
+            return;
+          }
+          setPack({
+            id: paused.packId,
+            title: paused.packTitle,
+            subtitle: 'Resumed',
+            description: '',
+            totalQuestions: paused.questions.length,
+            mcqCount: 0,
+            writtenCount: 0,
+            accent: 'teal',
+            difficulty: paused.difficulty,
+          });
+          setQuestions(paused.questions);
+          setAnswers(paused.answers);
+          setIndex(paused.index);
+          timedRef.current = paused.timed;
+          mcqOnlyRef.current = paused.mcqOnly;
+          difficultyRef.current = paused.difficulty;
+          if (paused.secondsLeft != null) {
+            setSecondsLeft(paused.secondsLeft);
+          }
+          return;
+        }
+
         const forceMcq =
           route.params.mcqOnly ||
           (!isModelReadyForWritten() && !route.params.mistakeQuestionIds);
         mcqOnlyRef.current = Boolean(forceMcq);
+        isDailyRef.current = Boolean(
+          route.params.isDaily || route.params.packId === 'daily',
+        );
+        difficultyRef.current = route.params.difficulty;
         const session = await buildRandomTestSession({
           packId: route.params.packId,
           timed: route.params.timed,
           mcqOnly: forceMcq,
           difficulty: route.params.difficulty,
           mistakeQuestionIds: route.params.mistakeQuestionIds,
+          questionCount: route.params.questionCount,
+          isDaily: isDailyRef.current,
         });
         if (cancelled) {
           return;
@@ -115,7 +222,7 @@ export function TestRunnerScreen({navigation, route}: Props) {
       } catch (err) {
         const detail =
           err instanceof Error ? err.message : 'Could not start test.';
-        Alert.alert('Test unavailable', detail, [
+        showAppAlert('Test unavailable', detail, [
           {text: 'OK', onPress: goToTestsTab},
         ]);
       } finally {
@@ -126,20 +233,26 @@ export function TestRunnerScreen({navigation, route}: Props) {
     })();
     return () => {
       cancelled = true;
+      void stopSpeaking();
     };
   }, [goToTestsTab, route.params]);
 
   const finishWith = useCallback(
     async (allAnswers: TestAnswerRecord[]) => {
-      if (!pack) {
+      if (!pack || finishingRef.current) {
         return;
       }
+      finishingRef.current = true;
+      void stopSpeaking();
       const attempt = finalizeAttempt({
         pack,
         questions,
         answers: allAnswers,
         timed: timedRef.current,
         mcqOnly: mcqOnlyRef.current,
+        difficulty: difficultyRef.current,
+        isDaily: isDailyRef.current || pack.isDaily,
+        isPlacement: pack.isPlacement,
       });
       await saveTestAttempt(attempt);
       hapticSuccess();
@@ -153,11 +266,14 @@ export function TestRunnerScreen({navigation, route}: Props) {
       return;
     }
     if (secondsLeft <= 0) {
-      Alert.alert('Time’s up', 'We’ll score what you’ve answered so far.');
+      showAppAlert('Time’s up', 'We’ll score what you’ve answered so far.');
       void finishWith(answers);
       return;
     }
-    const id = setTimeout(() => setSecondsLeft(s => (s == null ? s : s - 1)), 1000);
+    const id = setTimeout(
+      () => setSecondsLeft(s => (s == null ? s : s - 1)),
+      1000,
+    );
     return () => clearTimeout(id);
   }, [answers, finishWith, secondsLeft]);
 
@@ -169,12 +285,18 @@ export function TestRunnerScreen({navigation, route}: Props) {
     return (index + 1) / questions.length;
   }, [index, questions.length]);
 
+  const isChoice =
+    current?.kind === 'mcq' ||
+    current?.kind === 'fill' ||
+    current?.kind === 'listening';
+
   const advanceAfterRecord = async (record: TestAnswerRecord) => {
     const nextAnswers = [...answers, record];
     setAnswers(nextAnswers);
     setSelectedMcq(null);
     setMcqFeedback(null);
     setWritten('');
+    void stopSpeaking();
     if (index + 1 >= questions.length) {
       await finishWith(nextAnswers);
     } else {
@@ -182,15 +304,22 @@ export function TestRunnerScreen({navigation, route}: Props) {
     }
   };
 
-  const onCheckMcq = () => {
-    if (!current || current.kind !== 'mcq') {
+  const onCheckChoice = () => {
+    if (!current || !isChoice) {
       return;
     }
     if (selectedMcq == null) {
       setError('Choose an answer first.');
       return;
     }
-    const record = scoreMcq(current, selectedMcq);
+    let record: TestAnswerRecord;
+    if (current.kind === 'fill') {
+      record = scoreFillBlank(current, selectedMcq);
+    } else if (current.kind === 'listening') {
+      record = scoreListening(current, selectedMcq);
+    } else {
+      record = scoreMcq(current, selectedMcq);
+    }
     setMcqFeedback(record);
     if (record.correct) {
       hapticSuccess();
@@ -206,9 +335,9 @@ export function TestRunnerScreen({navigation, route}: Props) {
     }
     setError(null);
 
-    if (current.kind === 'mcq') {
+    if (isChoice) {
       if (!mcqFeedback) {
-        onCheckMcq();
+        onCheckChoice();
         return;
       }
       await advanceAfterRecord(mcqFeedback);
@@ -234,7 +363,7 @@ export function TestRunnerScreen({navigation, route}: Props) {
         await advanceAfterRecord(fallback);
       } catch {
         setError(detail);
-        Alert.alert('Grading failed', detail);
+        showAppAlert('Grading failed', detail);
       }
     } finally {
       setGrading(false);
@@ -288,6 +417,19 @@ export function TestRunnerScreen({navigation, route}: Props) {
     );
   }
 
+  const choiceOptions =
+    current.kind === 'mcq' ||
+    current.kind === 'fill' ||
+    current.kind === 'listening'
+      ? current.options
+      : [];
+  const correctIndex =
+    current.kind === 'mcq' ||
+    current.kind === 'fill' ||
+    current.kind === 'listening'
+      ? current.correctIndex
+      : -1;
+
   return (
     <SafeAreaView
       style={[styles.safe, {backgroundColor: colors.canvas}]}
@@ -312,20 +454,31 @@ export function TestRunnerScreen({navigation, route}: Props) {
           <Text style={[styles.progressLabel, {color: colors.secondaryText}]}>
             Question {index + 1} of {questions.length}
           </Text>
-          {timerLabel ? (
-            <Text
-              style={[
-                styles.timer,
-                {
-                  color:
-                    secondsLeft != null && secondsLeft < 60
-                      ? colors.accentRose
-                      : colors.accentWarm,
-                },
-              ]}>
-              {timerLabel}
-            </Text>
-          ) : null}
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 12}}>
+            <Pressable
+              onPress={() => {
+                void pauseAndLeave();
+              }}>
+              <Text
+                style={[styles.progressLabel, {color: colors.primaryAccent}]}>
+                Pause
+              </Text>
+            </Pressable>
+            {timerLabel ? (
+              <Text
+                style={[
+                  styles.timer,
+                  {
+                    color:
+                      secondsLeft != null && secondsLeft < 60
+                        ? colors.accentRose
+                        : colors.accentWarm,
+                  },
+                ]}>
+                {timerLabel}
+              </Text>
+            ) : null}
+          </View>
         </View>
 
         <KeyboardAwareScrollView
@@ -343,8 +496,7 @@ export function TestRunnerScreen({navigation, route}: Props) {
             style={[styles.skillChip, {backgroundColor: colors.accentWash}]}>
             <Text
               style={[styles.skillChipText, {color: colors.primaryAccent}]}>
-              {current.skill.replace('-', ' ')} ·{' '}
-              {current.kind === 'mcq' ? 'Multiple choice' : 'Written'}
+              {current.skill.replace('-', ' ')} · {kindLabel(current.kind)}
               {current.difficulty ? ` · ${current.difficulty}` : ''}
             </Text>
           </View>
@@ -352,6 +504,43 @@ export function TestRunnerScreen({navigation, route}: Props) {
           <Text style={[styles.prompt, {color: colors.primaryText}]}>
             {current.prompt}
           </Text>
+
+          {current.kind === 'fill' ? (
+            <Text
+              style={[
+                styles.rough,
+                {
+                  color: colors.primaryText,
+                  backgroundColor: colors.surfaceSolid,
+                  borderColor: colors.borderSoft,
+                  fontStyle: 'normal',
+                },
+              ]}>
+              {current.sentence}
+            </Text>
+          ) : null}
+
+          {current.kind === 'listening' ? (
+            <View style={styles.voiceRow}>
+              <AppButton
+                label="Play audio"
+                variant="secondary"
+                onPress={() => {
+                  hapticSelection();
+                  void speakText(current.speakText);
+                }}
+                style={styles.voiceBtn}
+              />
+              <AppButton
+                label="Replay"
+                variant="ghost"
+                onPress={() => {
+                  void speakText(current.speakText);
+                }}
+                style={styles.voiceBtn}
+              />
+            </View>
+          ) : null}
 
           {current.kind === 'written' ? (
             <>
@@ -426,13 +615,12 @@ export function TestRunnerScreen({navigation, route}: Props) {
             </>
           ) : (
             <View>
-              {current.options.map((option, optionIndex) => {
+              {choiceOptions.map((option, optionIndex) => {
                 const selected = selectedMcq === optionIndex;
                 const revealed = Boolean(mcqFeedback);
-                const isCorrectOption = optionIndex === current.correctIndex;
+                const isCorrectOption = optionIndex === correctIndex;
                 const showGood = revealed && isCorrectOption;
-                const showBad =
-                  revealed && selected && !isCorrectOption;
+                const showBad = revealed && selected && !isCorrectOption;
                 return (
                   <PressScale
                     key={`${current.id}-${optionIndex}`}
@@ -524,7 +712,7 @@ export function TestRunnerScreen({navigation, route}: Props) {
           <View style={styles.footer}>
             <AppButton
               label={
-                current.kind === 'mcq' && !mcqFeedback
+                isChoice && !mcqFeedback
                   ? 'Check answer'
                   : index + 1 >= questions.length
                     ? 'Finish & see score'
@@ -532,8 +720,9 @@ export function TestRunnerScreen({navigation, route}: Props) {
               }
               onPress={onNext}
             />
-            {current.kind === 'mcq' && !mcqFeedback ? (
-              <Pressable onPress={() => setError('Choose an answer, then Check.')}>
+            {isChoice && !mcqFeedback ? (
+              <Pressable
+                onPress={() => setError('Choose an answer, then Check.')}>
                 <Text style={[styles.hint, {color: colors.tabInactive}]}>
                   Instant feedback after you check
                 </Text>

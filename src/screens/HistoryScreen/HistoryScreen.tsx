@@ -1,11 +1,12 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {Alert, Pressable, ScrollView, Text, TextInput, View} from 'react-native';
+import {Pressable, ScrollView, Text, TextInput, View} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Svg, {Path} from 'react-native-svg';
 import {AppButton} from '../../components/AppButton';
+import {showAppAlert} from '../../components/AppModal';
 import {EmptyState} from '../../components/EmptyState';
 import {FadeIn} from '../../components/FadeIn';
 import {PressScale} from '../../components/PressScale';
@@ -80,7 +81,7 @@ export function HistoryScreen() {
   );
 
   const onClearAll = () => {
-    Alert.alert(
+    showAppAlert(
       'Clear history?',
       'This permanently removes all locally stored rewrites.',
       [
@@ -98,7 +99,7 @@ export function HistoryScreen() {
   };
 
   const onDelete = (id: string) => {
-    Alert.alert('Delete item?', 'Remove this rewrite from history.', [
+    showAppAlert('Delete item?', 'Remove this rewrite from history.', [
       {text: 'Cancel', style: 'cancel'},
       {
         text: 'Delete',

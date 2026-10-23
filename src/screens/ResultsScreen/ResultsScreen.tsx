@@ -1,9 +1,10 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Alert, ScrollView, Share, Text, View} from 'react-native';
+import {ScrollView, Share, Text, View} from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppButton} from '../../components/AppButton';
+import {showAppAlert} from '../../components/AppModal';
 import {FadeIn} from '../../components/FadeIn';
 import {LoadingView} from '../../components/LoadingView';
 import {PhraseComparePanel} from '../../components/PhraseComparePanel';
@@ -66,7 +67,7 @@ export function ResultsScreen({navigation, route}: Props) {
       hapticSuccess();
       setTimeout(() => setCopiedLabel(null), 1600);
     } catch {
-      Alert.alert('Copy failed', 'Could not copy to the clipboard.');
+      showAppAlert('Copy failed', 'Could not copy to the clipboard.');
     }
   };
 
@@ -93,13 +94,13 @@ export function ResultsScreen({navigation, route}: Props) {
       hapticSuccess();
       showToast('Saved to library');
     } catch {
-      Alert.alert('Could not save', 'Phrase library could not be updated.');
+      showAppAlert('Could not save', 'Phrase library could not be updated.');
     }
   };
 
   const onToggleFavorite = async () => {
     if (!historyId) {
-      Alert.alert(
+      showAppAlert(
         'Not in history',
         'This result is not linked to a history item yet.',
       );
@@ -131,7 +132,7 @@ export function ResultsScreen({navigation, route}: Props) {
     } catch (err) {
       const detail =
         err instanceof Error ? err.message : 'Something went wrong.';
-      Alert.alert('Could not regenerate', detail);
+      showAppAlert('Could not regenerate', detail);
     } finally {
       setBusy(false);
     }

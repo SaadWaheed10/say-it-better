@@ -1,10 +1,11 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {Alert, ScrollView, Switch, Text, View} from 'react-native';
+import {ScrollView, Switch, Text, View} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppButton} from '../../components/AppButton';
+import {showAppAlert} from '../../components/AppModal';
 import {FadeIn} from '../../components/FadeIn';
 import {PressScale} from '../../components/PressScale';
 import {ScreenBackdrop} from '../../components/ScreenBackdrop';
@@ -32,6 +33,7 @@ export function SettingsScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [defaultTone, setDefaultTone] = useState<ToneId>('professional');
+  const [dailyTestReminder, setDailyTestReminder] = useState(false);
   const [modelState, setModelState] = useState<ModelState>(getModelStatus());
   const [busy, setBusy] = useState(false);
 
@@ -39,7 +41,10 @@ export function SettingsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      getSettings().then(settings => setDefaultTone(settings.defaultTone));
+      getSettings().then(settings => {
+        setDefaultTone(settings.defaultTone);
+        setDailyTestReminder(Boolean(settings.dailyTestReminder));
+      });
       setModelState(getModelStatus());
     }, []),
   );
@@ -55,7 +60,7 @@ export function SettingsScreen() {
   };
 
   const onClearHistory = () => {
-    Alert.alert(
+    showAppAlert(
       'Clear local history?',
       'All saved rewrites will be removed from this device.',
       [
@@ -131,10 +136,29 @@ export function SettingsScreen() {
             />
           </View>
 
+          <View style={[styles.row, surface]}>
+            <Text style={[styles.rowText, {color: colors.primaryText}]}>
+              Daily test reminder
+            </Text>
+            <Switch
+              value={dailyTestReminder}
+              onValueChange={async enabled => {
+                setDailyTestReminder(enabled);
+                await saveSettings({dailyTestReminder: enabled});
+              }}
+              accessibilityLabel="Toggle daily test reminder"
+              trackColor={{
+                false: colors.border,
+                true: colors.primaryAccent,
+              }}
+              thumbColor={colors.white}
+            />
+          </View>
+
           <PressScale
             style={[styles.row, surface]}
             onPress={() =>
-              Alert.alert(
+              showAppAlert(
                 'Theme preference',
                 'Choose light, dark, or follow the system setting.',
                 [

@@ -1,0 +1,1 @@
+export {TestBadgesScreen} from './TestBadgesScreen';

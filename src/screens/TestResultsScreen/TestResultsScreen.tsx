@@ -9,10 +9,13 @@ import {ScreenBackdrop} from '../../components/ScreenBackdrop';
 import {ScreenHeader} from '../../components/ScreenHeader';
 import {useAppTheme} from '../../hooks/useAppTheme';
 import {hapticLight} from '../../services/hapticService';
+import {packForDifficulty} from '../../constants/tests';
 import {
+  exportAttemptsCsv,
   formatScore,
   getMistakeQuestionIds,
   getTestAttempt,
+  placementLevelFromScore,
 } from '../../services/testService';
 import {RootStackParamList, TestAttempt} from '../../types';
 import {useTestResultsScreenStyles} from './TestResultsScreen.styles';
@@ -51,6 +54,21 @@ export function TestResultsScreen({navigation, route}: Props) {
     try {
       await Share.share({
         message: `I scored ${formatScore(attempt.score, attempt.maxScore)} on ${attempt.packTitle} in SayItBetter.`,
+      });
+      hapticLight();
+    } catch {
+      // cancelled
+    }
+  };
+
+  const onExportCsv = async () => {
+    if (!attempt) {
+      return;
+    }
+    try {
+      await Share.share({
+        message: exportAttemptsCsv([attempt]),
+        title: 'SayItBetter score export',
       });
       hapticLight();
     } catch {
@@ -130,6 +148,70 @@ export function TestResultsScreen({navigation, route}: Props) {
             </View>
           </FadeIn>
 
+          {attempt.isPlacement ? (
+            <FadeIn delay={40}>
+              <View
+                style={[
+                  styles.suggestion,
+                  {
+                    backgroundColor: colors.accentWash,
+                    borderColor: `${colors.primaryAccent}44`,
+                  },
+                ]}>
+                <Text
+                  style={[styles.suggestionText, {color: colors.primaryText}]}>
+                  Placement result: start at{' '}
+                  {placementLevelFromScore(attempt.score, attempt.maxScore)}{' '}
+                  difficulty next.
+                </Text>
+              </View>
+            </FadeIn>
+          ) : null}
+
+          {(attempt.skillBreakdown?.length ?? 0) > 0 ? (
+            <FadeIn delay={50}>
+              <Text style={[styles.sectionTitle, {color: colors.primaryText}]}>
+                Per-skill report
+              </Text>
+              {attempt.skillBreakdown.map(row => (
+                <View
+                  key={row.skill}
+                  style={[
+                    styles.answerCard,
+                    {
+                      backgroundColor: colors.surfaceSolid,
+                      borderColor: colors.borderSoft,
+                    },
+                  ]}>
+                  <View style={styles.chipRow}>
+                    <Text
+                      style={[
+                        styles.answerMeta,
+                        {color: colors.primaryText, marginBottom: 0},
+                      ]}>
+                      {row.skill.replace('-', ' ')}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.chipText,
+                        {
+                          color:
+                            row.percent >= 0.75
+                              ? colors.success
+                              : row.percent >= 0.5
+                                ? colors.accentWarm
+                                : colors.accentRose,
+                        },
+                      ]}>
+                      {formatScore(row.earned, row.max)} ·{' '}
+                      {Math.round(row.percent * 100)}%
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </FadeIn>
+          ) : null}
+
           {attempt.weakSkills.length > 0 ? (
             <FadeIn delay={60}>
               <Text style={[styles.sectionTitle, {color: colors.primaryText}]}>
@@ -204,6 +286,7 @@ export function TestResultsScreen({navigation, route}: Props) {
                   ]}>
                   Q{i + 1} · {answer.kind.toUpperCase()} ·{' '}
                   {formatScore(answer.earned, answer.max)} · {answer.skill}
+                  {answer.tipTag ? ` · tip: ${answer.tipTag}` : ''}
                 </Text>
                 {answer.userWritten ? (
                   <Text
@@ -236,6 +319,26 @@ export function TestResultsScreen({navigation, route}: Props) {
           <View style={styles.actions}>
             <AppButton label="Share score" onPress={onShare} />
             <AppButton
+              label="Export this score (CSV)"
+              variant="secondary"
+              onPress={onExportCsv}
+            />
+            {attempt.isPlacement ? (
+              <AppButton
+                label={`Start ${placementLevelFromScore(attempt.score, attempt.maxScore)} pack`}
+                onPress={() => {
+                  const level = placementLevelFromScore(
+                    attempt.score,
+                    attempt.maxScore,
+                  );
+                  navigation.replace('TestRunner', {
+                    packId: packForDifficulty(level),
+                    difficulty: level,
+                  });
+                }}
+              />
+            ) : null}
+            <AppButton
               label="Retake (new random set)"
               variant="secondary"
               onPress={() =>
@@ -243,6 +346,8 @@ export function TestResultsScreen({navigation, route}: Props) {
                   packId: attempt.packId,
                   timed: attempt.timed,
                   mcqOnly: attempt.mcqOnly,
+                  difficulty: attempt.difficulty,
+                  isDaily: attempt.isDaily,
                 })
               }
             />

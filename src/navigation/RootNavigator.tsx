@@ -8,6 +8,7 @@ import {LibraryScreen} from '../screens/LibraryScreen';
 import {PracticeScreen} from '../screens/PracticeScreen';
 import {ResultsScreen} from '../screens/ResultsScreen';
 import {SplashScreen} from '../screens/SplashScreen';
+import {TestBadgesScreen} from '../screens/TestBadgesScreen';
 import {TestResultsScreen} from '../screens/TestResultsScreen';
 import {TestRunnerScreen} from '../screens/TestRunnerScreen';
 import {RootStackParamList} from '../types';
@@ -44,6 +45,7 @@ export function RootNavigator() {
         <Stack.Screen name="About" component={AboutScreen} />
         <Stack.Screen name="TestRunner" component={TestRunnerScreen} />
         <Stack.Screen name="TestResults" component={TestResultsScreen} />
+        <Stack.Screen name="TestBadges" component={TestBadgesScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

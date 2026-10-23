@@ -2011,6 +2011,8 @@ PODS:
     - Yoga
   - SocketRocket (0.7.1):
     - ReactNativeDependencies
+  - TextToSpeech (4.1.1):
+    - React-Core
   - whisper-rn (0.7.4):
     - hermes-engine
     - RCTRequired
@@ -2136,6 +2138,7 @@ DEPENDENCIES:
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - SocketRocket (from `build/rndeps-facades/SocketRocket`)
+  - TextToSpeech (from `../node_modules/react-native-tts`)
   - whisper-rn (from `../node_modules/whisper.rn`)
   - Yoga (from `build/rncore-facades/Yoga`)
 
@@ -2331,6 +2334,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-svg"
   SocketRocket:
     :path: build/rndeps-facades/SocketRocket
+  TextToSpeech:
+    :path: "../node_modules/react-native-tts"
   whisper-rn:
     :path: "../node_modules/whisper.rn"
   Yoga:
@@ -2432,6 +2437,7 @@ SPEC CHECKSUMS:
   RNScreens: 6d0d3b7819284dbf9f222899eb819f069fce4b8b
   RNSVG: c35beed3dcf6fd14b50ca1fc0d4214a17ec5334d
   SocketRocket: 37aec555668fb852ec12e3c0de59a86ca58f0871
+  TextToSpeech: 89b239221ec378d213af422d14789a729705360b
   whisper-rn: 19ffa42447860bc6f6967e13cfa78f8c59d83944
   Yoga: d1c536142c5ff8ec8cd856ab2a7c227a1d875c8e
 

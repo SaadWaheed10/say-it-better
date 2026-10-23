@@ -2,14 +2,44 @@ import {TestPack} from '../types';
 
 export const TEST_PACKS: TestPack[] = [
   {
+    id: 'daily',
+    title: 'Daily challenge',
+    subtitle: 'Same random set all day · resets tomorrow',
+    description: 'A seeded daily mix so you can compare with yourself tomorrow.',
+    totalQuestions: 10,
+    mcqCount: 6,
+    writtenCount: 1,
+    fillCount: 2,
+    listeningCount: 1,
+    difficulty: 'all',
+    isDaily: true,
+    accent: 'teal',
+  },
+  {
+    id: 'placement',
+    title: 'Placement test',
+    subtitle: 'Find your starting level',
+    description: 'A short mixed set that recommends Easy, Medium, or Hard next.',
+    totalQuestions: 8,
+    mcqCount: 5,
+    writtenCount: 1,
+    fillCount: 1,
+    listeningCount: 1,
+    difficulty: 'all',
+    isPlacement: true,
+    accent: 'amber',
+  },
+  {
     id: 'mixed-10',
     title: 'Quick check',
     subtitle: '10 random · mixed skills',
     description:
-      'A fresh mix of multiple-choice and short rewrites every time you start.',
+      'A fresh mix of multiple-choice, fill-in, listening, and rewrites.',
     totalQuestions: 10,
-    mcqCount: 8,
+    mcqCount: 5,
     writtenCount: 2,
+    fillCount: 2,
+    listeningCount: 1,
     difficulty: 'all',
     accent: 'teal',
   },
@@ -17,12 +47,26 @@ export const TEST_PACKS: TestPack[] = [
     id: 'easy-start',
     title: 'Easy start',
     subtitle: '10 easy questions · build confidence',
-    description: 'Shorter grammar and clarity items for a gentle warm-up.',
+    description: 'Gentle grammar and clarity items for a warm-up.',
     totalQuestions: 10,
-    mcqCount: 9,
+    mcqCount: 7,
     writtenCount: 1,
+    fillCount: 2,
     difficulty: 'easy',
     accent: 'teal',
+  },
+  {
+    id: 'hard-mode',
+    title: 'Hard mode',
+    subtitle: 'Advanced grammar, tone & clarity',
+    description: 'Tougher items for confident writers.',
+    totalQuestions: 10,
+    mcqCount: 5,
+    writtenCount: 2,
+    fillCount: 2,
+    listeningCount: 1,
+    difficulty: 'hard',
+    accent: 'rose',
   },
   {
     id: 'grammar-focus',
@@ -30,8 +74,9 @@ export const TEST_PACKS: TestPack[] = [
     subtitle: '10 random grammar & wording',
     description: 'Drawn from a large pool so repeats stay rare.',
     totalQuestions: 10,
-    mcqCount: 9,
+    mcqCount: 6,
     writtenCount: 1,
+    fillCount: 3,
     skillFilter: ['grammar', 'word-choice'],
     difficulty: 'all',
     accent: 'amber',
@@ -42,8 +87,10 @@ export const TEST_PACKS: TestPack[] = [
     subtitle: '10 clarity & tone items',
     description: 'Emails, follow-ups, and polite asks — reshuffled each run.',
     totalQuestions: 10,
-    mcqCount: 7,
-    writtenCount: 3,
+    mcqCount: 5,
+    writtenCount: 2,
+    fillCount: 2,
+    listeningCount: 1,
     skillFilter: ['clarity', 'tone'],
     difficulty: 'medium',
     accent: 'rose',
@@ -54,8 +101,10 @@ export const TEST_PACKS: TestPack[] = [
     subtitle: 'Hotels, airports, restaurants',
     description: 'Practical phrases for trips — random each attempt.',
     totalQuestions: 8,
-    mcqCount: 6,
-    writtenCount: 2,
+    mcqCount: 4,
+    writtenCount: 1,
+    fillCount: 2,
+    listeningCount: 1,
     skillFilter: ['travel', 'clarity', 'tone'],
     difficulty: 'all',
     accent: 'amber',
@@ -66,8 +115,10 @@ export const TEST_PACKS: TestPack[] = [
     subtitle: 'Confident workplace answers',
     description: 'Practice interview tone and clarity under light pressure.',
     totalQuestions: 8,
-    mcqCount: 6,
-    writtenCount: 2,
+    mcqCount: 4,
+    writtenCount: 1,
+    fillCount: 2,
+    listeningCount: 1,
     skillFilter: ['interview', 'tone', 'clarity'],
     difficulty: 'medium',
     timedSeconds: 8 * 60,
@@ -76,11 +127,13 @@ export const TEST_PACKS: TestPack[] = [
   {
     id: 'timed-sprint',
     title: 'Timed sprint',
-    subtitle: '8 min · mixed MCQ + written',
-    description: 'Optional timer on — finish before the clock runs out.',
+    subtitle: '8 min · mixed types',
+    description: 'Timer on — pause anytime and resume later.',
     totalQuestions: 10,
-    mcqCount: 8,
+    mcqCount: 5,
     writtenCount: 2,
+    fillCount: 2,
+    listeningCount: 1,
     difficulty: 'all',
     timedSeconds: 8 * 60,
     accent: 'teal',
@@ -114,6 +167,18 @@ export function packForSkill(skill: string): string {
   }
   if (skill === 'clarity' || skill === 'tone') {
     return 'workplace';
+  }
+  return 'mixed-10';
+}
+
+export function packForDifficulty(
+  difficulty: 'easy' | 'medium' | 'hard',
+): string {
+  if (difficulty === 'easy') {
+    return 'easy-start';
+  }
+  if (difficulty === 'hard') {
+    return 'hard-mode';
   }
   return 'mixed-10';
 }

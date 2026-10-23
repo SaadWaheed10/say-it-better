@@ -1,5 +1,16 @@
-import {McqQuestion, WrittenQuestion} from '../types';
+import {
+  FillBlankQuestion,
+  ListeningQuestion,
+  McqQuestion,
+  WrittenQuestion,
+} from '../types';
 import {MCQ_EXTRA, WRITTEN_EXTRA} from './testQuestionsExtra';
+import {
+  FILL_BANK,
+  LISTENING_BANK,
+  MCQ_MORE,
+  WRITTEN_MORE,
+} from './testQuestionsMore';
 
 /** Base pool — merged with extras below. */
 const MCQ_BASE: McqQuestion[] = [
@@ -495,5 +506,11 @@ const WRITTEN_BASE: WrittenQuestion[] = [
 ];
 
 /** Combined pool used by the test engine. */
-export const MCQ_BANK: McqQuestion[] = [...MCQ_BASE, ...MCQ_EXTRA];
-export const WRITTEN_BANK: WrittenQuestion[] = [...WRITTEN_BASE, ...WRITTEN_EXTRA];
+export const MCQ_BANK: McqQuestion[] = [...MCQ_BASE, ...MCQ_EXTRA, ...MCQ_MORE];
+export const WRITTEN_BANK: WrittenQuestion[] = [
+  ...WRITTEN_BASE,
+  ...WRITTEN_EXTRA,
+  ...WRITTEN_MORE,
+];
+export const FILL_BLANK_BANK: FillBlankQuestion[] = [...FILL_BANK];
+export const LISTENING_Q_BANK: ListeningQuestion[] = [...LISTENING_BANK];
