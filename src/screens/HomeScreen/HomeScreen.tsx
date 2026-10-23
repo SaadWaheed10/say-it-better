@@ -190,7 +190,47 @@ export function HomeScreen() {
           </FadeIn>
         ) : null}
 
-        <FadeIn delay={160}>
+        <FadeIn delay={140}>
+          <Text style={[styles.sectionTitle, {color: colors.primaryText}]}>
+            More ways to improve
+          </Text>
+          <View style={styles.toolsRow}>
+            <PressScale
+              onPress={() => navigation.navigate('Practice')}
+              style={[
+                styles.toolCard,
+                {
+                  backgroundColor: colors.surfaceSolid,
+                  borderColor: `${colors.accentWarm}44`,
+                },
+              ]}>
+              <Text style={[styles.toolTitle, {color: colors.primaryText}]}>
+                Practice
+              </Text>
+              <Text style={[styles.toolCopy, {color: colors.secondaryText}]}>
+                Rewrite rough phrases and compare
+              </Text>
+            </PressScale>
+            <PressScale
+              onPress={() => navigation.navigate('Library')}
+              style={[
+                styles.toolCard,
+                {
+                  backgroundColor: colors.surfaceSolid,
+                  borderColor: `${colors.accentRose}44`,
+                },
+              ]}>
+              <Text style={[styles.toolTitle, {color: colors.primaryText}]}>
+                Library
+              </Text>
+              <Text style={[styles.toolCopy, {color: colors.secondaryText}]}>
+                Saved lines ready to reuse
+              </Text>
+            </PressScale>
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={180}>
           <Text style={[styles.sectionTitle, {color: colors.primaryText}]}>
             Popular Tones
           </Text>

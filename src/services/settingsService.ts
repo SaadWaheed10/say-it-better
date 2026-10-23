@@ -41,6 +41,7 @@ function normalizeSettings(raw: Partial<AppSettings> | null): AppSettings {
       typeof raw.modelPathOverride === 'string'
         ? raw.modelPathOverride
         : undefined,
+    improveTipDismissed: Boolean(raw.improveTipDismissed),
   };
 }
 

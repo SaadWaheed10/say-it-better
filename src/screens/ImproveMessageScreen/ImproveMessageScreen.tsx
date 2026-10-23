@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from 'react';
-import {Alert, Text, TextInput, View} from 'react-native';
+import {Alert, Pressable, Text, TextInput, View} from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -15,7 +15,12 @@ import {useAppTheme} from '../../hooks/useAppTheme';
 import {useVoiceInput} from '../../hooks/useVoiceInput';
 import {improveMessage} from '../../services/aiService';
 import {addHistoryItem} from '../../services/historyService';
+import {hapticSuccess} from '../../services/hapticService';
 import {getSettings} from '../../services/settingsService';
+import {
+  dismissImproveTip,
+  isImproveTipDismissed,
+} from '../../services/tipService';
 import {releaseVoiceResources} from '../../services/voiceService';
 import {RootStackParamList, ToneId} from '../../types';
 import {useImproveMessageScreenStyles} from './ImproveMessageScreen.styles';
@@ -29,9 +34,12 @@ export function ImproveMessageScreen({navigation, route}: Props) {
   const [tone, setTone] = useState<ToneId>(
     route.params?.tone ?? DEFAULT_TONE,
   );
-  const [instruction, setInstruction] = useState('');
+  const [instruction, setInstruction] = useState(
+    route.params?.instruction ?? '',
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showTip, setShowTip] = useState(false);
   const [defaultsLoaded, setDefaultsLoaded] = useState(
     Boolean(route.params?.tone),
   );
@@ -53,6 +61,26 @@ export function ImproveMessageScreen({navigation, route}: Props) {
     return () => {
       void releaseVoiceResources();
     };
+  }, []);
+
+  React.useEffect(() => {
+    if (route.params?.message != null) {
+      setMessage(route.params.message);
+    }
+    if (route.params?.instruction != null) {
+      setInstruction(route.params.instruction);
+    }
+    if (route.params?.tone != null) {
+      setTone(route.params.tone);
+    }
+  }, [
+    route.params?.message,
+    route.params?.instruction,
+    route.params?.tone,
+  ]);
+
+  React.useEffect(() => {
+    isImproveTipDismissed().then(dismissed => setShowTip(!dismissed));
   }, []);
 
   React.useEffect(() => {
@@ -98,7 +126,7 @@ export function ImproveMessageScreen({navigation, route}: Props) {
         instruction,
       });
       const historyItem = await addHistoryItem(result);
-      // Use navigate (not replace) so header back on Results returns here.
+      hapticSuccess();
       navigation.navigate('Results', {
         original: result.original,
         improved: result.improved,
@@ -140,6 +168,35 @@ export function ImproveMessageScreen({navigation, route}: Props) {
             extraHeight={120}
             showsVerticalScrollIndicator={false}
             enableResetScrollToCoords={false}>
+            {showTip ? (
+              <FadeIn>
+                <View
+                  style={[
+                    styles.tip,
+                    {
+                      backgroundColor: colors.accentWash,
+                      borderColor: `${colors.primaryAccent}44`,
+                    },
+                  ]}>
+                  <Text style={[styles.tipText, {color: colors.primaryText}]}>
+                    Tip: speak or type rough English — even broken grammar is
+                    fine. We correct the phrase, we don’t answer it.
+                  </Text>
+                  <Pressable
+                    onPress={async () => {
+                      await dismissImproveTip();
+                      setShowTip(false);
+                    }}
+                    hitSlop={8}>
+                    <Text
+                      style={[styles.tipDismiss, {color: colors.primaryAccent}]}>
+                      Got it
+                    </Text>
+                  </Pressable>
+                </View>
+              </FadeIn>
+            ) : null}
+
             <FadeIn>
               <Text style={[styles.hint, {color: colors.secondaryText}]}>
                 Type or speak your rough English. We’ll return the corrected

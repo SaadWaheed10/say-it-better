@@ -12,6 +12,21 @@ export function useImproveMessageScreenStyles() {
       paddingBottom: rp(48),
       flexGrow: 1,
     },
+    tip: {
+      borderWidth: 1,
+      borderRadius: rr(16),
+      padding: rp(14),
+      marginBottom: rm(14),
+    },
+    tipText: {
+      fontSize: rf(14),
+      lineHeight: rl(20),
+    },
+    tipDismiss: {
+      fontSize: rf(13),
+      fontWeight: '700' as const,
+      marginTop: rm(10),
+    },
     hint: {
       fontSize: rf(14),
       lineHeight: rl(20),

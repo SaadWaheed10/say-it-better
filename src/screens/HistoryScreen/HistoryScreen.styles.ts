@@ -34,7 +34,32 @@ export function useHistoryScreenStyles() {
     caption: {
       fontSize: rf(13),
       lineHeight: rl(18),
-      marginBottom: rm(16),
+      marginBottom: rm(12),
+    },
+    search: {
+      borderWidth: 1,
+      borderRadius: rr(14),
+      paddingHorizontal: rp(14),
+      paddingVertical: rp(10),
+      fontSize: rf(15),
+      lineHeight: rl(20),
+      marginBottom: rm(12),
+    },
+    filterRow: {
+      flexDirection: 'row' as const,
+      flexWrap: 'wrap' as const,
+      gap: rp(8),
+      marginBottom: rm(14),
+    },
+    filterChip: {
+      paddingHorizontal: rp(12),
+      paddingVertical: rp(7),
+      borderRadius: rr(999),
+      borderWidth: 1,
+    },
+    filterChipText: {
+      fontSize: rf(12),
+      fontWeight: '600' as const,
     },
     card: {
       borderWidth: 1,
@@ -49,16 +74,25 @@ export function useHistoryScreenStyles() {
       bottom: 0,
       width: rp(4),
     },
-    /** Content inset — keeps copy clear of the left accent stripe */
     cardBody: {
       paddingTop: rp(16),
       paddingBottom: rp(16),
       paddingRight: rp(18),
       paddingLeft: rp(20),
     },
+    cardTop: {
+      flexDirection: 'row' as const,
+      alignItems: 'flex-start' as const,
+      justifyContent: 'space-between' as const,
+      gap: rp(8),
+    },
     meta: {
       fontSize: rf(13),
       lineHeight: rl(18),
+      flex: 1,
+    },
+    starHit: {
+      padding: rp(4),
     },
     preview: {
       fontSize: rf(16),
@@ -73,7 +107,6 @@ export function useHistoryScreenStyles() {
     },
     deleteHit: {
       marginTop: rm(10),
-      marginLeft: 0,
       alignSelf: 'flex-start' as const,
     },
     deleteText: {

@@ -51,6 +51,33 @@ export type HistoryItem = {
   alternatives: string[];
   tone: ToneId;
   createdAt: number;
+  isFavorite?: boolean;
+};
+
+export type LibraryItem = {
+  id: string;
+  text: string;
+  original?: string;
+  tone?: ToneId;
+  sourceHistoryId?: string;
+  createdAt: number;
+};
+
+export type TemplateSituation = {
+  id: string;
+  title: string;
+  subtitle: string;
+  example: string;
+  instruction: string;
+  tone: ToneId;
+  accent: 'teal' | 'amber' | 'rose';
+};
+
+export type PracticePrompt = {
+  id: string;
+  rough: string;
+  hint: string;
+  tone: ToneId;
 };
 
 export type AppSettings = {
@@ -58,13 +85,21 @@ export type AppSettings = {
   themePreference: ThemePreference;
   onboardingCompleted: boolean;
   modelPathOverride?: string;
+  improveTipDismissed?: boolean;
 };
 
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
   MainTabs: undefined;
-  ImproveMessage: {tone?: ToneId; message?: string} | undefined;
+  ImproveMessage:
+    | {
+        tone?: ToneId;
+        message?: string;
+        instruction?: string;
+        templateId?: string;
+      }
+    | undefined;
   Results: {
     original: string;
     improved: string;
@@ -72,10 +107,14 @@ export type RootStackParamList = {
     tone: ToneId;
     historyId?: string;
   };
+  Practice: undefined;
+  Library: undefined;
+  About: undefined;
 };
 
 export type MainTabParamList = {
   Home: undefined;
+  Templates: undefined;
   History: undefined;
   Settings: undefined;
 };

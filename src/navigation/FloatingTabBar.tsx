@@ -5,8 +5,9 @@ import LinearGradient from 'react-native-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Svg, {Circle, Path} from 'react-native-svg';
 import {useAppTheme} from '../hooks/useAppTheme';
+import {hapticSelection} from '../services/hapticService';
 import {darkGradientTab} from '../theme/colors';
-import {ri, rp, rr} from '../theme/useScaledStyles';
+import {ri, rp} from '../theme/useScaledStyles';
 import {useFloatingTabBarStyles} from './FloatingTabBar.styles';
 
 export const FLOATING_TAB_BAR_HEIGHT = 62;
@@ -24,6 +25,20 @@ function TabIcon({
 }) {
   const size = ri(focused ? 22 : 20);
   const stroke = focused ? 2 : 1.75;
+
+  if (name === 'Templates') {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24">
+        <Path
+          d="M5 5 h6 v6 H5 Z M13 5 h6 v6 h-6 Z M5 13 h6 v6 H5 Z M13 13 h6 v6 h-6 Z"
+          stroke={color}
+          strokeWidth={stroke}
+          fill="none"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    );
+  }
 
   if (name === 'History') {
     return (
@@ -150,6 +165,7 @@ export function FloatingTabBar({
               : colors.tabInactive;
 
             const onPress = () => {
+              hapticSelection();
               const event = navigation.emit({
                 type: 'tabPress',
                 target: route.key,

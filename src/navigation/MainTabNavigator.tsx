@@ -5,6 +5,7 @@ import {useAppTheme} from '../hooks/useAppTheme';
 import {HistoryScreen} from '../screens/HistoryScreen';
 import {HomeScreen} from '../screens/HomeScreen';
 import {SettingsScreen} from '../screens/SettingsScreen';
+import {TemplatesScreen} from '../screens/TemplatesScreen';
 import {MainTabParamList} from '../types';
 import {rp} from '../theme/useScaledStyles';
 import {
@@ -40,6 +41,11 @@ export function MainTabNavigator() {
         sceneStyle: {backgroundColor: colors.canvas},
       }}>
       <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen
+        name="Templates"
+        component={TemplatesScreen}
+        options={{title: 'Situations'}}
+      />
       <Tab.Screen name="History" component={HistoryScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>

@@ -114,6 +114,27 @@ export function useHomeScreenStyles() {
       marginBottom: rm(14),
       letterSpacing: -0.2,
     },
+    toolsRow: {
+      flexDirection: 'row' as const,
+      gap: rp(12),
+    },
+    toolCard: {
+      flex: 1,
+      borderWidth: 1,
+      borderRadius: rr(18),
+      padding: rp(14),
+      minHeight: rp(96),
+    },
+    toolTitle: {
+      fontSize: rf(15),
+      fontWeight: '700' as const,
+      lineHeight: rl(20),
+    },
+    toolCopy: {
+      fontSize: rf(12),
+      lineHeight: rl(16),
+      marginTop: rm(6),
+    },
     toneGrid: {
       flexDirection: 'row' as const,
       flexWrap: 'wrap' as const,

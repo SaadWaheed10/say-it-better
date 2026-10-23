@@ -21,5 +21,9 @@ export function useEmptyStateStyles() {
       textAlign: 'center' as const,
       marginTop: rm(12),
     },
+    action: {
+      marginTop: rm(18),
+      alignSelf: 'stretch' as const,
+    },
   }));
 }

@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {Alert, ScrollView, Switch, Text, View} from 'react-native';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppButton} from '../../components/AppButton';
@@ -17,12 +18,19 @@ import {
 } from '../../services/aiService';
 import {clearHistory} from '../../services/historyService';
 import {getSettings, saveSettings} from '../../services/settingsService';
-import {ModelState, ThemePreference, ToneId} from '../../types';
+import {
+  ModelState,
+  RootStackParamList,
+  ThemePreference,
+  ToneId,
+} from '../../types';
 import {useSettingsScreenStyles} from './SettingsScreen.styles';
 
 export function SettingsScreen() {
   const {colors, themePreference, setThemePreference} = useAppTheme();
   const styles = useSettingsScreenStyles();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [defaultTone, setDefaultTone] = useState<ToneId>('professional');
   const [modelState, setModelState] = useState<ModelState>(getModelStatus());
   const [busy, setBusy] = useState(false);
@@ -203,16 +211,38 @@ export function SettingsScreen() {
           <Text style={[styles.sectionLabel, {color: colors.secondaryText}]}>
             About
           </Text>
-          <View style={[styles.row, surface]}>
+          <PressScale
+            style={[styles.row, surface]}
+            onPress={() => navigation.navigate('About')}>
             <Text style={[styles.rowText, {color: colors.primaryText}]}>
-              About {APP_NAME}
+              About & privacy
             </Text>
             <Text style={[styles.aboutCaption, {color: colors.secondaryText}]}>
               v{APP_VERSION}
             </Text>
-          </View>
+          </PressScale>
+          <PressScale
+            style={[styles.row, surface]}
+            onPress={() => navigation.navigate('Library')}>
+            <Text style={[styles.rowText, {color: colors.primaryText}]}>
+              Phrase library
+            </Text>
+            <Text style={[styles.aboutCaption, {color: colors.secondaryText}]}>
+              Saved lines
+            </Text>
+          </PressScale>
+          <PressScale
+            style={[styles.row, surface]}
+            onPress={() => navigation.navigate('Practice')}>
+            <Text style={[styles.rowText, {color: colors.primaryText}]}>
+              Practice mode
+            </Text>
+            <Text style={[styles.aboutCaption, {color: colors.secondaryText}]}>
+              Learn by rewriting
+            </Text>
+          </PressScale>
           <Text style={[styles.footerNote, {color: colors.secondaryText}]}>
-            Made for a better way to communicate
+            {APP_NAME} · Made for a better way to communicate
           </Text>
         </FadeIn>
       </ScrollView>
