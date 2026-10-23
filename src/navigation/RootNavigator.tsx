@@ -8,6 +8,8 @@ import {LibraryScreen} from '../screens/LibraryScreen';
 import {PracticeScreen} from '../screens/PracticeScreen';
 import {ResultsScreen} from '../screens/ResultsScreen';
 import {ReviewScreen} from '../screens/ReviewScreen';
+import {SignInScreen} from '../screens/SignInScreen';
+import {SignUpScreen} from '../screens/SignUpScreen';
 import {SituationChallengeScreen} from '../screens/SituationChallengeScreen';
 import {SplashScreen} from '../screens/SplashScreen';
 import {TestBadgesScreen} from '../screens/TestBadgesScreen';
@@ -55,6 +57,8 @@ export function RootNavigator() {
           name="SituationChallenge"
           component={SituationChallengeScreen}
         />
+        <Stack.Screen name="SignIn" component={SignInScreen} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

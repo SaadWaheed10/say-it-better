@@ -10,7 +10,6 @@ import {ScreenBackdrop} from '../../components/ScreenBackdrop';
 import {useAppTheme} from '../../hooks/useAppTheme';
 import {useVoiceInput} from '../../hooks/useVoiceInput';
 import {hapticSelection, hapticSuccess} from '../../services/hapticService';
-import {markOnboardingCompleted} from '../../services/settingsService';
 import {speakText, stopSpeaking} from '../../services/ttsService';
 import {OnboardingStackParamList, RootStackParamList} from '../../types';
 import {useOnboardingModesScreenStyles} from './OnboardingModesScreen.styles';
@@ -37,14 +36,10 @@ export function OnboardingModesScreen({navigation}: Props) {
     onError: detail => setVoiceStatus(detail),
   });
 
-  const finish = useCallback(async () => {
+  const goToAuth = useCallback(() => {
     void stopSpeaking();
     void voice.cancel();
-    await markOnboardingCompleted();
-    navigation.getParent()?.reset({
-      index: 0,
-      routes: [{name: 'MainTabs'}],
-    });
+    navigation.navigate('OnboardingAuth');
   }, [navigation, voice]);
 
   useFocusEffect(
@@ -204,7 +199,7 @@ export function OnboardingModesScreen({navigation}: Props) {
       </View>
 
       <FadeIn delay={180} style={styles.footer}>
-        <PaginationDots total={3} activeIndex={2} />
+        <PaginationDots total={4} activeIndex={2} />
         <View style={styles.actions}>
           <AppButton
             label="Back"
@@ -219,16 +214,17 @@ export function OnboardingModesScreen({navigation}: Props) {
           <AppButton
             label="Skip"
             variant="ghost"
-            onPress={finish}
+            onPress={goToAuth}
             style={styles.sideButton}
-            accessibilityLabel="Skip onboarding"
+            accessibilityLabel="Skip to account step"
           />
         </View>
         <AppButton
-          label="Get Started"
-          onPress={finish}
+          label="Continue"
+          iconRight="→"
+          onPress={goToAuth}
           style={styles.primaryCta}
-          accessibilityLabel="Finish onboarding and go to home"
+          accessibilityLabel="Continue to account setup"
         />
       </FadeIn>
     </SafeAreaView>

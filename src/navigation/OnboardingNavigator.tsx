@@ -1,5 +1,6 @@
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {OnboardingAuthScreen} from '../screens/OnboardingAuthScreen';
 import {OnboardingModesScreen} from '../screens/OnboardingModesScreen';
 import {OnboardingToneScreen} from '../screens/OnboardingToneScreen';
 import {OnboardingWelcomeScreen} from '../screens/OnboardingWelcomeScreen';
@@ -16,6 +17,7 @@ export function OnboardingNavigator() {
       />
       <Stack.Screen name="OnboardingTone" component={OnboardingToneScreen} />
       <Stack.Screen name="OnboardingModes" component={OnboardingModesScreen} />
+      <Stack.Screen name="OnboardingAuth" component={OnboardingAuthScreen} />
     </Stack.Navigator>
   );
 }

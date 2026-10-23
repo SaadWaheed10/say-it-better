@@ -9,7 +9,6 @@ import {OnboardingToneIllustration} from '../../components/OnboardingToneIllustr
 import {PaginationDots} from '../../components/PaginationDots';
 import {ScreenBackdrop} from '../../components/ScreenBackdrop';
 import {useAppTheme} from '../../hooks/useAppTheme';
-import {markOnboardingCompleted} from '../../services/settingsService';
 import {OnboardingStackParamList, RootStackParamList} from '../../types';
 import {useOnboardingToneScreenStyles} from './OnboardingToneScreen.styles';
 
@@ -22,12 +21,8 @@ export function OnboardingToneScreen({navigation}: Props) {
   const {colors} = useAppTheme();
   const styles = useOnboardingToneScreenStyles();
 
-  const finish = useCallback(async () => {
-    await markOnboardingCompleted();
-    navigation.getParent()?.reset({
-      index: 0,
-      routes: [{name: 'MainTabs'}],
-    });
+  const skipToAuth = useCallback(() => {
+    navigation.navigate('OnboardingAuth');
   }, [navigation]);
 
   useFocusEffect(
@@ -61,7 +56,7 @@ export function OnboardingToneScreen({navigation}: Props) {
       </View>
 
       <FadeIn delay={180} style={styles.footer}>
-        <PaginationDots total={3} activeIndex={1} />
+        <PaginationDots total={4} activeIndex={1} />
         <View style={styles.actions}>
           <AppButton
             label="Back"
@@ -73,9 +68,9 @@ export function OnboardingToneScreen({navigation}: Props) {
           <AppButton
             label="Skip"
             variant="ghost"
-            onPress={finish}
+            onPress={skipToAuth}
             style={styles.sideButton}
-            accessibilityLabel="Skip onboarding"
+            accessibilityLabel="Skip to account step"
           />
         </View>
         <AppButton

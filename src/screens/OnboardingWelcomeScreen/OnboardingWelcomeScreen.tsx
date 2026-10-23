@@ -11,7 +11,6 @@ import {PaginationDots} from '../../components/PaginationDots';
 import {ScreenBackdrop} from '../../components/ScreenBackdrop';
 import {APP_TAGLINE} from '../../constants/storage';
 import {useAppTheme} from '../../hooks/useAppTheme';
-import {markOnboardingCompleted} from '../../services/settingsService';
 import {OnboardingStackParamList, RootStackParamList} from '../../types';
 import {useOnboardingWelcomeScreenStyles} from './OnboardingWelcomeScreen.styles';
 
@@ -24,12 +23,8 @@ export function OnboardingWelcomeScreen({navigation}: Props) {
   const {colors} = useAppTheme();
   const styles = useOnboardingWelcomeScreenStyles();
 
-  const finish = useCallback(async () => {
-    await markOnboardingCompleted();
-    navigation.getParent()?.reset({
-      index: 0,
-      routes: [{name: 'MainTabs'}],
-    });
+  const skipToAuth = useCallback(() => {
+    navigation.navigate('OnboardingAuth');
   }, [navigation]);
 
   useFocusEffect(
@@ -72,14 +67,14 @@ export function OnboardingWelcomeScreen({navigation}: Props) {
       </View>
 
       <FadeIn delay={240} style={styles.footer}>
-        <PaginationDots total={3} activeIndex={0} />
+        <PaginationDots total={4} activeIndex={0} />
         <View style={styles.actions}>
           <AppButton
             label="Skip"
             variant="ghost"
-            onPress={finish}
+            onPress={skipToAuth}
             style={styles.skip}
-            accessibilityLabel="Skip onboarding"
+            accessibilityLabel="Skip to account step"
           />
           <AppButton
             label="Continue"

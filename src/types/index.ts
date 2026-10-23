@@ -312,10 +312,13 @@ export type RootStackParamList = {
   Review: undefined;
   TipsLibrary: undefined;
   SituationChallenge: {templateId: string};
+  SignIn: {fromOnboarding?: boolean} | undefined;
+  SignUp: {fromOnboarding?: boolean} | undefined;
 };
 
 export type OnboardingStackParamList = {
   OnboardingWelcome: undefined;
   OnboardingTone: undefined;
   OnboardingModes: undefined;
+  OnboardingAuth: undefined;
 };

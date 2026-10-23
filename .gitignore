@@ -79,6 +79,12 @@ models/*.gguf
 models/*.bin
 *.gguf
 
+# Supabase local overrides (never commit service_role)
+src/config/supabase.local.ts
+.env
+.env.*
+!.env.example
+
 .tools/
 
 # llama.rn generated Hexagon assets

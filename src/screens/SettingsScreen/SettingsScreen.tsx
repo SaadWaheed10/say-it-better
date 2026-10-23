@@ -17,6 +17,13 @@ import {
   initializeModel,
   subscribeModelState,
 } from '../../services/aiService';
+import {
+  AuthUser,
+  checkSupabaseConnection,
+  signOut,
+  subscribeAuth,
+  SupabaseConnectionStatus,
+} from '../../services/authService';
 import {clearHistory} from '../../services/historyService';
 import {syncDailyTestReminder} from '../../services/notificationService';
 import {getSettings, saveSettings} from '../../services/settingsService';
@@ -27,6 +34,19 @@ import {
   ToneId,
 } from '../../types';
 import {useSettingsScreenStyles} from './SettingsScreen.styles';
+
+function connectionLabel(status: SupabaseConnectionStatus): string {
+  switch (status) {
+    case 'connected':
+      return 'Connected';
+    case 'unreachable':
+      return 'Unreachable';
+    case 'not_configured':
+      return 'Not configured';
+    default:
+      return 'Checking…';
+  }
+}
 
 export function SettingsScreen() {
   const {
@@ -43,8 +63,27 @@ export function SettingsScreen() {
   const [dailyTestReminder, setDailyTestReminder] = useState(false);
   const [modelState, setModelState] = useState<ModelState>(getModelStatus());
   const [busy, setBusy] = useState(false);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [supabaseStatus, setSupabaseStatus] =
+    useState<SupabaseConnectionStatus>('checking');
+  const [supabaseDetail, setSupabaseDetail] = useState('Checking…');
+  const [pingBusy, setPingBusy] = useState(false);
 
   useEffect(() => subscribeModelState(setModelState), []);
+  useEffect(() => subscribeAuth(setAuthUser), []);
+
+  const refreshSupabaseStatus = useCallback(async () => {
+    setPingBusy(true);
+    setSupabaseStatus('checking');
+    setSupabaseDetail('Checking…');
+    try {
+      const result = await checkSupabaseConnection();
+      setSupabaseStatus(result.status);
+      setSupabaseDetail(result.detail);
+    } finally {
+      setPingBusy(false);
+    }
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -53,7 +92,8 @@ export function SettingsScreen() {
         setDailyTestReminder(Boolean(settings.dailyTestReminder));
       });
       setModelState(getModelStatus());
-    }, []),
+      refreshSupabaseStatus();
+    }, [refreshSupabaseStatus]),
   );
 
   const onToneChange = async (tone: ToneId) => {
@@ -115,6 +155,73 @@ export function SettingsScreen() {
             end={{x: 1, y: 0}}
             style={styles.titleAccent}
           />
+        </FadeIn>
+
+        <FadeIn delay={40}>
+          <Text style={[styles.sectionLabel, {color: colors.secondaryText}]}>
+            Account
+          </Text>
+          <View style={[styles.modelCard, surface]}>
+            <Text style={[styles.modelTitle, {color: colors.primaryText}]}>
+              Supabase: {connectionLabel(supabaseStatus)}
+            </Text>
+            <Text style={[styles.modelMeta, {color: colors.secondaryText}]}>
+              {supabaseDetail}
+            </Text>
+            <Text style={[styles.modelMetaTight, {color: colors.secondaryText}]}>
+              {authUser?.email
+                ? `Signed in as ${authUser.email}`
+                : 'Not signed in — app works offline without an account'}
+            </Text>
+            <AppButton
+              label={pingBusy ? 'Checking…' : 'Check connection'}
+              variant="secondary"
+              loading={pingBusy}
+              onPress={refreshSupabaseStatus}
+              style={styles.retryBtn}
+              accessibilityLabel="Check Supabase connection"
+            />
+            {authUser ? (
+              <AppButton
+                label="Sign out"
+                variant="ghost"
+                onPress={() => {
+                  showAppAlert('Sign out?', 'You can keep using the app locally.', [
+                    {text: 'Cancel', style: 'cancel'},
+                    {
+                      text: 'Sign out',
+                      style: 'destructive',
+                      onPress: async () => {
+                        try {
+                          await signOut();
+                        } catch (e) {
+                          showAppAlert(
+                            'Sign out failed',
+                            e instanceof Error ? e.message : 'Try again.',
+                          );
+                        }
+                      },
+                    },
+                  ]);
+                }}
+                style={styles.retryBtn}
+              />
+            ) : (
+              <>
+                <AppButton
+                  label="Sign in"
+                  onPress={() => navigation.navigate('SignIn')}
+                  style={styles.retryBtn}
+                />
+                <AppButton
+                  label="Create account"
+                  variant="secondary"
+                  onPress={() => navigation.navigate('SignUp')}
+                  style={styles.retryBtn}
+                />
+              </>
+            )}
+          </View>
         </FadeIn>
 
         <FadeIn delay={80}>
