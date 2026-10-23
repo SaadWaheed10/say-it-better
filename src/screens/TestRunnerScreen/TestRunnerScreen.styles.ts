@@ -59,10 +59,10 @@ export function useTestRunnerScreenStyles() {
     audioBtnInner: {
       flexDirection: 'row' as const,
       alignItems: 'center' as const,
-      paddingVertical: rp(9),
+      paddingVertical: rp(11),
       paddingHorizontal: rp(12),
       gap: rp(10),
-      minHeight: rp(44),
+      minHeight: rp(48),
       width: '100%' as const,
     },
     audioIconWrap: {
@@ -116,15 +116,16 @@ export function useTestRunnerScreenStyles() {
       overflow: 'hidden' as const,
       justifyContent: 'center' as const,
       paddingHorizontal: rp(14),
-      minWidth: rp(88),
+      minWidth: rp(96),
+      minHeight: rp(48),
     },
     audioRowSideInner: {
       flexDirection: 'row' as const,
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
       gap: rp(6),
-      minHeight: rp(44),
-      paddingVertical: rp(9),
+      minHeight: rp(48),
+      paddingVertical: rp(11),
     },
     audioRowSideLabel: {
       fontSize: rf(13),

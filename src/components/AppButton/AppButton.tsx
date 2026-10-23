@@ -15,6 +15,7 @@ type Props = {
   disabled?: boolean;
   loading?: boolean;
   accessibilityLabel?: string;
+  accessibilityHint?: string;
   style?: ViewStyle;
   iconRight?: string;
   /** Optional override for non-primary label color */
@@ -28,6 +29,7 @@ export function AppButton({
   disabled = false,
   loading = false,
   accessibilityLabel,
+  accessibilityHint,
   style,
   iconRight,
   labelColor,
@@ -57,6 +59,7 @@ export function AppButton({
       <PressScale
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel || label}
+        accessibilityHint={accessibilityHint}
         accessibilityState={{disabled: isDisabled}}
         disabled={isDisabled}
         onPress={onPress}
@@ -76,6 +79,7 @@ export function AppButton({
     <PressScale
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel || label}
+      accessibilityHint={accessibilityHint}
       accessibilityState={{disabled: isDisabled}}
       disabled={isDisabled}
       onPress={onPress}

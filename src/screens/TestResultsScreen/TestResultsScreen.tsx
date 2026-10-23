@@ -364,6 +364,44 @@ export function TestResultsScreen({navigation, route}: Props) {
                 }}
               />
             ) : null}
+            {attempt.weakSkills.length > 0 ? (
+              <AppButton
+                label={`Drill weak skills (${attempt.weakSkills
+                  .slice(0, 2)
+                  .map(s => s.replace('-', ' '))
+                  .join(', ')})`}
+                variant="secondary"
+                onPress={() => {
+                  const weak = new Set(attempt.weakSkills);
+                  const ids = attempt.answers
+                    .filter(
+                      a =>
+                        a.earned < a.max &&
+                        (weak.has(a.skill) || a.earned === 0),
+                    )
+                    .map(a => a.questionId)
+                    .slice(0, 8);
+                  const fallback = attempt.answers
+                    .filter(a => a.earned < a.max)
+                    .map(a => a.questionId)
+                    .slice(0, 5);
+                  navigation.replace('TestRunner', {
+                    packId: attempt.packId,
+                    mistakeQuestionIds: ids.length > 0 ? ids : fallback,
+                  });
+                }}
+              />
+            ) : null}
+            <AppButton
+              label="Spaced review"
+              variant="ghost"
+              onPress={() => navigation.navigate('Review')}
+            />
+            <AppButton
+              label="Tips library"
+              variant="ghost"
+              onPress={() => navigation.navigate('TipsLibrary')}
+            />
             <AppButton
               label="Practice mode"
               variant="ghost"

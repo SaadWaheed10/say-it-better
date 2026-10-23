@@ -2,7 +2,7 @@ import {Platform} from 'react-native';
 import RNFS from 'react-native-fs';
 
 /**
- * Whisper GGML model (speech recognition) — separate from SmolLM2.
+ * Whisper GGML model (speech recognition) — separate from the Qwen LLM.
  * Android: android/app/src/main/assets/models/<file>
  * iOS: ios/SayItBetter/Resources/<file> (Copy Bundle Resources)
  */

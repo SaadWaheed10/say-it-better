@@ -61,7 +61,7 @@ export function OnboardingToneScreen({navigation}: Props) {
       </View>
 
       <FadeIn delay={180} style={styles.footer}>
-        <PaginationDots total={2} activeIndex={1} />
+        <PaginationDots total={3} activeIndex={1} />
         <View style={styles.actions}>
           <AppButton
             label="Back"
@@ -79,10 +79,11 @@ export function OnboardingToneScreen({navigation}: Props) {
           />
         </View>
         <AppButton
-          label="Get Started"
-          onPress={finish}
+          label="Continue"
+          iconRight="→"
+          onPress={() => navigation.navigate('OnboardingModes')}
           style={styles.primaryCta}
-          accessibilityLabel="Finish onboarding and go to home"
+          accessibilityLabel="Continue to hear and speak demo"
         />
       </FadeIn>
     </SafeAreaView>

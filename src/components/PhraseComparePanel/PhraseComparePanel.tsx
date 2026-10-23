@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {Pressable, Text, View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, {Path} from 'react-native-svg';
 import {useAppTheme} from '../../hooks/useAppTheme';
 import {darkGradientHero, lightGradientHero} from '../../theme/colors';
 import {ri} from '../../theme/useScaledStyles';
+import {diffPhrases} from '../../utils/textDiff';
 import {usePhraseComparePanelStyles} from './PhraseComparePanel.styles';
 
 type Props = {
@@ -43,6 +44,11 @@ export function PhraseComparePanel({
   const unchanged =
     original.trim().toLowerCase() === corrected.trim().toLowerCase();
 
+  const segments = useMemo(
+    () => (unchanged ? [] : diffPhrases(original, corrected)),
+    [original, corrected, unchanged],
+  );
+
   return (
     <View style={styles.wrap}>
       <View
@@ -70,11 +76,36 @@ export function PhraseComparePanel({
             </Text>
           </View>
         </View>
-        <Text
-          selectable
-          style={[styles.draftBody, {color: colors.secondaryText}]}>
-          {original}
-        </Text>
+        {unchanged || segments.length === 0 ? (
+          <Text
+            selectable
+            style={[styles.draftBody, {color: colors.secondaryText}]}>
+            {original}
+          </Text>
+        ) : (
+          <Text selectable style={styles.draftBody}>
+            {segments
+              .filter(seg => seg.kind !== 'added')
+              .map((seg, i) => (
+                <Text
+                  key={`o-${i}`}
+                  style={{
+                    color:
+                      seg.kind === 'removed'
+                        ? colors.accentRose
+                        : colors.secondaryText,
+                    textDecorationLine:
+                      seg.kind === 'removed' ? 'line-through' : 'none',
+                    backgroundColor:
+                      seg.kind === 'removed'
+                        ? `${colors.accentRose}22`
+                        : 'transparent',
+                  }}>
+                  {seg.text}
+                </Text>
+              ))}
+          </Text>
+        )}
         <Pressable
           onPress={onCopyOriginal}
           accessibilityRole="button"
@@ -136,11 +167,32 @@ export function PhraseComparePanel({
             </View>
           ) : null}
         </View>
-        <Text
-          selectable
-          style={[styles.resultBody, {color: colors.primaryText}]}>
-          {corrected}
-        </Text>
+        {unchanged || segments.length === 0 ? (
+          <Text
+            selectable
+            style={[styles.resultBody, {color: colors.primaryText}]}>
+            {corrected}
+          </Text>
+        ) : (
+          <Text selectable style={styles.resultBody}>
+            {segments
+              .filter(seg => seg.kind !== 'removed')
+              .map((seg, i) => (
+                <Text
+                  key={`c-${i}`}
+                  style={{
+                    color: colors.primaryText,
+                    fontWeight: seg.kind === 'added' ? '700' : '500',
+                    backgroundColor:
+                      seg.kind === 'added'
+                        ? `${colors.primaryAccent}28`
+                        : 'transparent',
+                  }}>
+                  {seg.text}
+                </Text>
+              ))}
+          </Text>
+        )}
         <Pressable
           onPress={onCopyCorrected}
           accessibilityRole="button"

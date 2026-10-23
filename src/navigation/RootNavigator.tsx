@@ -7,10 +7,13 @@ import {ImproveMessageScreen} from '../screens/ImproveMessageScreen';
 import {LibraryScreen} from '../screens/LibraryScreen';
 import {PracticeScreen} from '../screens/PracticeScreen';
 import {ResultsScreen} from '../screens/ResultsScreen';
+import {ReviewScreen} from '../screens/ReviewScreen';
+import {SituationChallengeScreen} from '../screens/SituationChallengeScreen';
 import {SplashScreen} from '../screens/SplashScreen';
 import {TestBadgesScreen} from '../screens/TestBadgesScreen';
 import {TestResultsScreen} from '../screens/TestResultsScreen';
 import {TestRunnerScreen} from '../screens/TestRunnerScreen';
+import {TipsLibraryScreen} from '../screens/TipsLibraryScreen';
 import {RootStackParamList} from '../types';
 import {MainTabNavigator} from './MainTabNavigator';
 import {OnboardingNavigator} from './OnboardingNavigator';
@@ -46,6 +49,12 @@ export function RootNavigator() {
         <Stack.Screen name="TestRunner" component={TestRunnerScreen} />
         <Stack.Screen name="TestResults" component={TestResultsScreen} />
         <Stack.Screen name="TestBadges" component={TestBadgesScreen} />
+        <Stack.Screen name="Review" component={ReviewScreen} />
+        <Stack.Screen name="TipsLibrary" component={TipsLibraryScreen} />
+        <Stack.Screen
+          name="SituationChallenge"
+          component={SituationChallengeScreen}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

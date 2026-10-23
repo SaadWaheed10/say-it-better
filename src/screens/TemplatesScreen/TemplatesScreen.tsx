@@ -1,5 +1,5 @@
 import React from 'react';
-import {ScrollView, Text, View} from 'react-native';
+import {Pressable, ScrollView, Text, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
@@ -43,8 +43,8 @@ export function TemplatesScreen() {
             style={styles.titleAccent}
           />
           <Text style={[styles.caption, {color: colors.secondaryText}]}>
-            Pick a scenario — we prefill a rough draft and tone so you can
-            correct it faster.
+            Prefill a draft to rewrite, or take a scored challenge for the same
+            situation.
           </Text>
         </FadeIn>
 
@@ -54,16 +54,7 @@ export function TemplatesScreen() {
             TONES.find(t => t.id === template.tone)?.label ?? template.tone;
           return (
             <FadeIn key={template.id} delay={Math.min(index * 40, 200)}>
-              <PressScale
-                onPress={() => {
-                  hapticSelection();
-                  navigation.navigate('ImproveMessage', {
-                    message: template.example,
-                    instruction: template.instruction,
-                    tone: template.tone,
-                    templateId: template.id,
-                  });
-                }}
+              <View
                 style={[
                   styles.card,
                   {
@@ -78,29 +69,68 @@ export function TemplatesScreen() {
                   style={styles.cardStripe}
                 />
                 <View style={styles.cardBody}>
-                  <Text style={[styles.cardTitle, {color: colors.primaryText}]}>
-                    {template.title}
-                  </Text>
-                  <Text
-                    style={[styles.cardSubtitle, {color: colors.secondaryText}]}>
-                    {template.subtitle}
-                  </Text>
-                  <Text
-                    numberOfLines={2}
-                    style={[styles.example, {color: colors.secondaryText}]}>
-                    “{template.example}”
-                  </Text>
-                  <View
-                    style={[
-                      styles.toneChip,
-                      {backgroundColor: `${accent}22`},
-                    ]}>
-                    <Text style={[styles.toneChipText, {color: accent}]}>
-                      {toneLabel}
+                  <PressScale
+                    onPress={() => {
+                      hapticSelection();
+                      navigation.navigate('ImproveMessage', {
+                        message: template.example,
+                        instruction: template.instruction,
+                        tone: template.tone,
+                        templateId: template.id,
+                      });
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Rewrite ${template.title}`}>
+                    <Text
+                      style={[styles.cardTitle, {color: colors.primaryText}]}>
+                      {template.title}
                     </Text>
+                    <Text
+                      style={[
+                        styles.cardSubtitle,
+                        {color: colors.secondaryText},
+                      ]}>
+                      {template.subtitle}
+                    </Text>
+                    <Text
+                      numberOfLines={2}
+                      style={[styles.example, {color: colors.secondaryText}]}>
+                      “{template.example}”
+                    </Text>
+                  </PressScale>
+                  <View style={styles.actionsRow}>
+                    <View
+                      style={[
+                        styles.toneChip,
+                        {backgroundColor: `${accent}22`, marginTop: 0},
+                      ]}>
+                      <Text style={[styles.toneChipText, {color: accent}]}>
+                        {toneLabel}
+                      </Text>
+                    </View>
+                    <Pressable
+                      onPress={() => {
+                        hapticSelection();
+                        navigation.navigate('SituationChallenge', {
+                          templateId: template.id,
+                        });
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Score challenge for ${template.title}`}
+                      style={[
+                        styles.challengeHit,
+                        {
+                          borderColor: `${accent}66`,
+                          backgroundColor: `${accent}18`,
+                        },
+                      ]}>
+                      <Text style={[styles.challengeText, {color: accent}]}>
+                        Score challenge
+                      </Text>
+                    </Pressable>
                   </View>
                 </View>
-              </PressScale>
+              </View>
             </FadeIn>
           );
         })}

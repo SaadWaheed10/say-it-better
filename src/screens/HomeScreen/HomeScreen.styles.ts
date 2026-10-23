@@ -106,6 +106,40 @@ export function useHomeScreenStyles() {
       fontSize: rf(13),
       lineHeight: rl(18),
     },
+    progressCard: {
+      borderWidth: 1,
+      borderRadius: rr(18),
+      padding: rp(16),
+      marginTop: rm(20),
+    },
+    progressTitle: {
+      fontSize: rf(15),
+      fontWeight: '700' as const,
+      lineHeight: rl(20),
+      marginBottom: rm(10),
+    },
+    progressRow: {
+      flexDirection: 'row' as const,
+      gap: rp(10),
+    },
+    progressStat: {
+      flex: 1,
+    },
+    progressValue: {
+      fontSize: rf(20),
+      fontWeight: '800' as const,
+      lineHeight: rl(26),
+    },
+    progressLabel: {
+      fontSize: rf(11),
+      lineHeight: rl(14),
+      marginTop: rm(2),
+    },
+    progressHint: {
+      fontSize: rf(13),
+      lineHeight: rl(18),
+      marginTop: rm(12),
+    },
     sectionTitle: {
       fontSize: rf(18),
       fontWeight: '700' as const,

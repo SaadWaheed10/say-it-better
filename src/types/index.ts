@@ -263,6 +263,8 @@ export type AppSettings = {
   modelPathOverride?: string;
   improveTipDismissed?: boolean;
   dailyTestReminder?: boolean;
+  /** Prefer less animation (also honors system Reduce Motion). */
+  reduceMotion?: boolean;
 };
 
 export type MainTabParamList = {
@@ -307,9 +309,13 @@ export type RootStackParamList = {
   };
   TestResults: {attemptId: string};
   TestBadges: undefined;
+  Review: undefined;
+  TipsLibrary: undefined;
+  SituationChallenge: {templateId: string};
 };
 
 export type OnboardingStackParamList = {
   OnboardingWelcome: undefined;
   OnboardingTone: undefined;
+  OnboardingModes: undefined;
 };

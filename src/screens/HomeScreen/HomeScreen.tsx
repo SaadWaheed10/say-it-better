@@ -13,7 +13,14 @@ import {ToneIcon} from '../../components/ToneIcon';
 import {TONES} from '../../constants/tones';
 import {useAppTheme} from '../../hooks/useAppTheme';
 import {getModelStatus} from '../../services/aiService';
-import {ModelState, RootStackParamList, ToneId} from '../../types';
+import {getReviewDueCount} from '../../services/spacedReviewService';
+import {getProgressSnapshot} from '../../services/testService';
+import {
+  ModelState,
+  RootStackParamList,
+  TestProgressSnapshot,
+  ToneId,
+} from '../../types';
 import {ri} from '../../theme/useScaledStyles';
 import {useHomeScreenStyles} from './HomeScreen.styles';
 
@@ -25,10 +32,14 @@ export function HomeScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [modelState, setModelState] = useState<ModelState>(getModelStatus());
+  const [progress, setProgress] = useState<TestProgressSnapshot | null>(null);
+  const [reviewDue, setReviewDue] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
       setModelState(getModelStatus());
+      getProgressSnapshot().then(setProgress);
+      getReviewDueCount().then(setReviewDue);
     }, []),
   );
 
@@ -190,6 +201,65 @@ export function HomeScreen() {
           </FadeIn>
         ) : null}
 
+        <FadeIn delay={130}>
+          <PressScale
+            onPress={() =>
+              navigation.navigate('MainTabs', {screen: 'Tests'})
+            }
+            accessibilityRole="button"
+            accessibilityLabel="Open your progress in tests"
+            style={[
+              styles.progressCard,
+              {
+                backgroundColor: colors.surfaceSolid,
+                borderColor: colors.borderSoft,
+              },
+            ]}>
+            <Text style={[styles.progressTitle, {color: colors.primaryText}]}>
+              Your progress
+            </Text>
+            <View style={styles.progressRow}>
+              <View style={styles.progressStat}>
+                <Text
+                  style={[styles.progressValue, {color: colors.primaryAccent}]}>
+                  {progress?.streakDays ?? 0}
+                </Text>
+                <Text
+                  style={[styles.progressLabel, {color: colors.secondaryText}]}>
+                  Day streak
+                </Text>
+              </View>
+              <View style={styles.progressStat}>
+                <Text
+                  style={[styles.progressValue, {color: colors.accentWarm}]}>
+                  {progress?.attempts?.length ?? 0}
+                </Text>
+                <Text
+                  style={[styles.progressLabel, {color: colors.secondaryText}]}>
+                  Tests done
+                </Text>
+              </View>
+              <View style={styles.progressStat}>
+                <Text
+                  style={[styles.progressValue, {color: colors.accentRose}]}>
+                  {reviewDue}
+                </Text>
+                <Text
+                  style={[styles.progressLabel, {color: colors.secondaryText}]}>
+                  Reviews due
+                </Text>
+              </View>
+            </View>
+            <Text style={[styles.progressHint, {color: colors.secondaryText}]}>
+              {progress?.dailyChallengeDone
+                ? reviewDue > 0
+                  ? 'Daily challenge done — tap for tests, or open spaced review.'
+                  : 'Nice — daily challenge complete. Keep the streak going.'
+                : 'Daily challenge still open — a quick test keeps your streak.'}
+            </Text>
+          </PressScale>
+        </FadeIn>
+
         <FadeIn delay={140}>
           <Text style={[styles.sectionTitle, {color: colors.primaryText}]}>
             More ways to improve
@@ -245,6 +315,24 @@ export function HomeScreen() {
               </Text>
               <Text style={[styles.toolCopy, {color: colors.secondaryText}]}>
                 Saved lines ready to reuse
+              </Text>
+            </PressScale>
+            <PressScale
+              onPress={() => navigation.navigate('Review')}
+              style={[
+                styles.toolCard,
+                {
+                  backgroundColor: colors.surfaceSolid,
+                  borderColor: `${colors.primaryAccent}44`,
+                },
+              ]}>
+              <Text style={[styles.toolTitle, {color: colors.primaryText}]}>
+                Review
+              </Text>
+              <Text style={[styles.toolCopy, {color: colors.secondaryText}]}>
+                {reviewDue > 0
+                  ? `${reviewDue} due now`
+                  : 'Spaced mistakes & favorites'}
               </Text>
             </PressScale>
           </View>

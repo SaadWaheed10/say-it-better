@@ -4,8 +4,10 @@ import {
   Pressable,
   PressableProps,
   StyleProp,
+  View,
   ViewStyle,
 } from 'react-native';
+import {useReduceMotion} from '../../hooks/useReduceMotion';
 
 type Props = Omit<PressableProps, 'style'> & {
   children: React.ReactNode;
@@ -23,9 +25,13 @@ export function PressScale({
   onPressOut,
   ...rest
 }: Props) {
+  const reduceMotion = useReduceMotion();
   const scale = useRef(new Animated.Value(1)).current;
 
   const animateTo = (value: number) => {
+    if (reduceMotion) {
+      return;
+    }
     Animated.spring(scale, {
       toValue: value,
       useNativeDriver: true,
@@ -49,14 +55,18 @@ export function PressScale({
         onPressOut?.(event);
       }}
       {...rest}>
-      <Animated.View
-        style={{
-          transform: [{scale}],
-          width: '100%',
-          alignSelf: 'stretch',
-        }}>
-        {children}
-      </Animated.View>
+      {reduceMotion ? (
+        <View style={{width: '100%', alignSelf: 'stretch'}}>{children}</View>
+      ) : (
+        <Animated.View
+          style={{
+            transform: [{scale}],
+            width: '100%',
+            alignSelf: 'stretch',
+          }}>
+          {children}
+        </Animated.View>
+      )}
     </Pressable>
   );
 }

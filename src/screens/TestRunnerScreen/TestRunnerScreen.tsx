@@ -210,28 +210,44 @@ function AudioActionButton({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityHint={
+        icon === 'mic'
+          ? 'Records your answer with the microphone on this device'
+          : icon === 'speaker'
+            ? 'Plays audio on this device'
+            : 'Stops the current action'
+      }
+      accessibilityState={{disabled: Boolean(disabled)}}
+      hitSlop={8}
       style={[
         pair ? styles.audioPairBtn : styles.audioBtn,
         {
           backgroundColor: palette.bg,
           borderColor: palette.border,
           opacity: disabled ? 0.45 : 1,
+          minHeight: 48,
         },
       ]}>
       <View style={styles.audioBtnInner}>
-        <View style={[styles.audioIconWrap, {backgroundColor: palette.iconBg}]}>
+        <View
+          style={[styles.audioIconWrap, {backgroundColor: palette.iconBg}]}
+          importantForAccessibility="no-hide-descendants">
           {iconEl}
         </View>
         <View style={styles.audioChipTextCol}>
           <Text
             style={[styles.audioChipLabel, {color: palette.fg}]}
-            numberOfLines={1}>
+            numberOfLines={1}
+            accessibilityElementsHidden
+            importantForAccessibility="no">
             {label}
           </Text>
           {sublabel ? (
             <Text
               style={[styles.audioChipSub, {color: colors.secondaryText}]}
-              numberOfLines={1}>
+              numberOfLines={1}
+              accessibilityElementsHidden
+              importantForAccessibility="no">
               {sublabel}
             </Text>
           ) : null}
@@ -264,6 +280,8 @@ function QuestionAudioBar({
           onPress={onHear}
           accessibilityRole="button"
           accessibilityLabel={speaking ? 'Playing question' : 'Hear question'}
+          accessibilityHint="Plays the question aloud with on-device text to speech"
+          hitSlop={8}
           style={[
             styles.audioRowMain,
             {
@@ -276,7 +294,8 @@ function QuestionAudioBar({
               style={[
                 styles.audioIconWrap,
                 {backgroundColor: audioPalette('teal', colors).iconBg},
-              ]}>
+              ]}
+              importantForAccessibility="no-hide-descendants">
               <SpeakerIcon color={audioPalette('teal', colors).fg} size={16} />
             </View>
             <View style={styles.audioChipTextCol}>
@@ -285,7 +304,9 @@ function QuestionAudioBar({
                   styles.audioChipLabel,
                   {color: audioPalette('teal', colors).fg},
                 ]}
-                numberOfLines={1}>
+                numberOfLines={1}
+                accessibilityElementsHidden
+                importantForAccessibility="no">
                 {speaking ? 'Playing…' : 'Hear question'}
               </Text>
             </View>
@@ -296,6 +317,9 @@ function QuestionAudioBar({
           onPress={onStop}
           accessibilityRole="button"
           accessibilityLabel="Stop audio"
+          accessibilityHint="Stops question playback"
+          accessibilityState={{disabled: !speaking}}
+          hitSlop={8}
           style={[
             styles.audioRowSide,
             {
@@ -306,7 +330,10 @@ function QuestionAudioBar({
           ]}>
           <View style={styles.audioRowSideInner}>
             <StopIcon color={stopPalette.fg} size={14} />
-            <Text style={[styles.audioRowSideLabel, {color: stopPalette.fg}]}>
+            <Text
+              style={[styles.audioRowSideLabel, {color: stopPalette.fg}]}
+              accessibilityElementsHidden
+              importantForAccessibility="no">
               Stop
             </Text>
           </View>

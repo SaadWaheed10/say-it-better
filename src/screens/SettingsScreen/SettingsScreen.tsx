@@ -18,6 +18,7 @@ import {
   subscribeModelState,
 } from '../../services/aiService';
 import {clearHistory} from '../../services/historyService';
+import {syncDailyTestReminder} from '../../services/notificationService';
 import {getSettings, saveSettings} from '../../services/settingsService';
 import {
   ModelState,
@@ -28,7 +29,13 @@ import {
 import {useSettingsScreenStyles} from './SettingsScreen.styles';
 
 export function SettingsScreen() {
-  const {colors, themePreference, setThemePreference} = useAppTheme();
+  const {
+    colors,
+    themePreference,
+    setThemePreference,
+    reduceMotion,
+    setReduceMotion,
+  } = useAppTheme();
   const styles = useSettingsScreenStyles();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -145,6 +152,7 @@ export function SettingsScreen() {
               onValueChange={async enabled => {
                 setDailyTestReminder(enabled);
                 await saveSettings({dailyTestReminder: enabled});
+                await syncDailyTestReminder(enabled);
               }}
               accessibilityLabel="Toggle daily test reminder"
               trackColor={{
@@ -155,8 +163,29 @@ export function SettingsScreen() {
             />
           </View>
 
+          <View style={[styles.row, surface]}>
+            <Text style={[styles.rowText, {color: colors.primaryText}]}>
+              Reduce motion
+            </Text>
+            <Switch
+              value={reduceMotion}
+              onValueChange={async enabled => {
+                await setReduceMotion(enabled);
+              }}
+              accessibilityLabel="Toggle reduce motion"
+              accessibilityHint="Turns off decorative animations in the app"
+              trackColor={{
+                false: colors.border,
+                true: colors.primaryAccent,
+              }}
+              thumbColor={colors.white}
+            />
+          </View>
+
           <PressScale
             style={[styles.row, surface]}
+            accessibilityRole="button"
+            accessibilityLabel={`Theme preference, currently ${themePreference}`}
             onPress={() =>
               showAppAlert(
                 'Theme preference',
@@ -263,6 +292,26 @@ export function SettingsScreen() {
             </Text>
             <Text style={[styles.aboutCaption, {color: colors.secondaryText}]}>
               Learn by rewriting
+            </Text>
+          </PressScale>
+          <PressScale
+            style={[styles.row, surface]}
+            onPress={() => navigation.navigate('Review')}>
+            <Text style={[styles.rowText, {color: colors.primaryText}]}>
+              Spaced review
+            </Text>
+            <Text style={[styles.aboutCaption, {color: colors.secondaryText}]}>
+              Mistakes & favorites
+            </Text>
+          </PressScale>
+          <PressScale
+            style={[styles.row, surface]}
+            onPress={() => navigation.navigate('TipsLibrary')}>
+            <Text style={[styles.rowText, {color: colors.primaryText}]}>
+              Tips library
+            </Text>
+            <Text style={[styles.aboutCaption, {color: colors.secondaryText}]}>
+              Offline writing tips
             </Text>
           </PressScale>
           <Text style={[styles.footerNote, {color: colors.secondaryText}]}>

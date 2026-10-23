@@ -72,7 +72,7 @@ export function OnboardingWelcomeScreen({navigation}: Props) {
       </View>
 
       <FadeIn delay={240} style={styles.footer}>
-        <PaginationDots total={2} activeIndex={0} />
+        <PaginationDots total={3} activeIndex={0} />
         <View style={styles.actions}>
           <AppButton
             label="Skip"

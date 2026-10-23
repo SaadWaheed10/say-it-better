@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from 'react';
-import {Animated, StyleProp, ViewStyle} from 'react-native';
+import {Animated, StyleProp, View, ViewStyle} from 'react-native';
+import {useReduceMotion} from '../../hooks/useReduceMotion';
 import {rp} from '../../theme/useScaledStyles';
 
 type Props = {
@@ -17,11 +18,19 @@ export function FadeIn({
   distance,
   style,
 }: Props) {
+  const reduceMotion = useReduceMotion();
   const travel = distance ?? rp(14);
-  const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(travel)).current;
+  const opacity = useRef(new Animated.Value(reduceMotion ? 1 : 0)).current;
+  const translateY = useRef(
+    new Animated.Value(reduceMotion ? 0 : travel),
+  ).current;
 
   useEffect(() => {
+    if (reduceMotion) {
+      opacity.setValue(1);
+      translateY.setValue(0);
+      return;
+    }
     const animation = Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,
@@ -38,7 +47,11 @@ export function FadeIn({
     ]);
     animation.start();
     return () => animation.stop();
-  }, [delay, travel, duration, opacity, translateY]);
+  }, [delay, travel, duration, opacity, translateY, reduceMotion]);
+
+  if (reduceMotion) {
+    return <View style={style}>{children}</View>;
+  }
 
   return (
     <Animated.View style={[{opacity, transform: [{translateY}]}, style]}>

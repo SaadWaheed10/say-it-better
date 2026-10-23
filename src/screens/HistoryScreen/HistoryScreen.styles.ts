@@ -105,12 +105,25 @@ export function useHistoryScreenStyles() {
       lineHeight: rl(18),
       marginTop: rm(6),
     },
-    deleteHit: {
+    cardActions: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: rp(16),
       marginTop: rm(10),
+    },
+    deleteHit: {
       alignSelf: 'flex-start' as const,
     },
     deleteText: {
       fontSize: rf(13),
+      lineHeight: rl(18),
+    },
+    practiceHit: {
+      alignSelf: 'flex-start' as const,
+    },
+    practiceText: {
+      fontSize: rf(13),
+      fontWeight: '700' as const,
       lineHeight: rl(18),
     },
   }));

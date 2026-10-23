@@ -43,6 +43,7 @@ function normalizeSettings(raw: Partial<AppSettings> | null): AppSettings {
         : undefined,
     improveTipDismissed: Boolean(raw.improveTipDismissed),
     dailyTestReminder: Boolean(raw.dailyTestReminder),
+    reduceMotion: Boolean(raw.reduceMotion),
   };
 }
 

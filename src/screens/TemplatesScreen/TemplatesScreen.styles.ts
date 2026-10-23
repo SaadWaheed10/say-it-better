@@ -70,5 +70,22 @@ export function useTemplatesScreenStyles() {
       fontWeight: '700' as const,
       letterSpacing: 0.3,
     },
+    actionsRow: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: rp(10),
+      marginTop: rm(12),
+      flexWrap: 'wrap' as const,
+    },
+    challengeHit: {
+      paddingHorizontal: rp(10),
+      paddingVertical: rp(6),
+      borderRadius: rr(999),
+      borderWidth: 1,
+    },
+    challengeText: {
+      fontSize: rf(12),
+      fontWeight: '700' as const,
+    },
   }));
 }

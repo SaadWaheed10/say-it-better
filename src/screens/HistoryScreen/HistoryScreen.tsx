@@ -318,16 +318,37 @@ export function HistoryScreen() {
                         ]}>
                         Original: {item.original}
                       </Text>
-                      <Pressable
-                        onPress={() => onDelete(item.id)}
-                        accessibilityRole="button"
-                        accessibilityLabel="Delete history item"
-                        style={styles.deleteHit}>
-                        <Text
-                          style={[styles.deleteText, {color: colors.error}]}>
-                          Delete
-                        </Text>
-                      </Pressable>
+                      <View style={styles.cardActions}>
+                        <Pressable
+                          onPress={() => {
+                            hapticSelection();
+                            navigation.navigate('ImproveMessage', {
+                              message: item.original,
+                              tone: item.tone,
+                            });
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel="Practice this phrase again"
+                          style={styles.practiceHit}>
+                          <Text
+                            style={[
+                              styles.practiceText,
+                              {color: colors.primaryAccent},
+                            ]}>
+                            Practice again
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => onDelete(item.id)}
+                          accessibilityRole="button"
+                          accessibilityLabel="Delete history item"
+                          style={styles.deleteHit}>
+                          <Text
+                            style={[styles.deleteText, {color: colors.error}]}>
+                            Delete
+                          </Text>
+                        </Pressable>
+                      </View>
                     </View>
                   </PressScale>
                 </FadeIn>

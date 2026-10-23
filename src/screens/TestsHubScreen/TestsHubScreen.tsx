@@ -13,7 +13,9 @@ import {TEST_PACKS, getTestPack} from '../../constants/tests';
 import {useAppTheme} from '../../hooks/useAppTheme';
 import {hapticLight, hapticSelection} from '../../services/hapticService';
 import {getSettings} from '../../services/settingsService';
+import {getReviewDueCount} from '../../services/spacedReviewService';
 import {
+  buildWeeklyJourneySummary,
   exportAttemptsCsv,
   formatScore,
   getMistakeQuestionIds,
@@ -56,6 +58,7 @@ export function TestsHubScreen() {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [progress, setProgress] = useState<TestProgressSnapshot | null>(null);
   const [mistakeCount, setMistakeCount] = useState(0);
+  const [reviewDue, setReviewDue] = useState(0);
   const [questionCount, setQuestionCount] = useState<5 | 10 | 15>(10);
   const [showReminder, setShowReminder] = useState(false);
   const stats = poolStats();
@@ -65,6 +68,7 @@ export function TestsHubScreen() {
     useCallback(() => {
       getProgressSnapshot().then(setProgress);
       getMistakeQuestionIds().then(ids => setMistakeCount(ids.length));
+      getReviewDueCount().then(setReviewDue);
       getSettings().then(settings => {
         setShowReminder(Boolean(settings.dailyTestReminder));
       });
@@ -117,6 +121,21 @@ export function TestsHubScreen() {
       // cancelled
     }
   };
+
+  const onShareWeek = async () => {
+    const journey = buildWeeklyJourneySummary(attempts);
+    try {
+      await Share.share({
+        message: journey.shareMessage,
+        title: 'SayItBetter weekly journey',
+      });
+      hapticLight();
+    } catch {
+      // cancelled
+    }
+  };
+
+  const weekJourney = buildWeeklyJourneySummary(attempts);
 
   return (
     <SafeAreaView
@@ -268,8 +287,78 @@ export function TestsHubScreen() {
           </View>
         </FadeIn>
 
+        <FadeIn delay={65}>
+          <View style={styles.statsRow}>
+            <PressScale
+              onPress={() => navigation.navigate('Review')}
+              style={[
+                styles.statCard,
+                {
+                  backgroundColor: colors.surfaceSolid,
+                  borderColor: colors.borderSoft,
+                  flex: 1,
+                },
+              ]}>
+              <Text style={[styles.statValue, {color: colors.primaryAccent}]}>
+                {reviewDue}
+              </Text>
+              <Text style={[styles.statLabel, {color: colors.secondaryText}]}>
+                Reviews due
+              </Text>
+            </PressScale>
+            <PressScale
+              onPress={() => navigation.navigate('TipsLibrary')}
+              style={[
+                styles.statCard,
+                {
+                  backgroundColor: colors.surfaceSolid,
+                  borderColor: colors.borderSoft,
+                  flex: 1,
+                },
+              ]}>
+              <Text style={[styles.statValue, {color: colors.accentWarm}]}>
+                Tips
+              </Text>
+              <Text style={[styles.statLabel, {color: colors.secondaryText}]}>
+                Offline library
+              </Text>
+            </PressScale>
+          </View>
+        </FadeIn>
+
         <FadeIn delay={70}>
           <ScoreTrendChart attempts={attempts} />
+        </FadeIn>
+
+        <FadeIn delay={75}>
+          <PressScale
+            onPress={onShareWeek}
+            accessibilityRole="button"
+            accessibilityLabel="Share weekly journey summary"
+            accessibilityHint="Opens the system share sheet with your week’s skill-test progress"
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.surfaceSolid,
+                borderColor: colors.borderSoft,
+              },
+            ]}>
+            <View style={styles.cardBody}>
+              <Text style={[styles.cardTitle, {color: colors.primaryText}]}>
+                This week’s journey
+              </Text>
+              <Text
+                style={[styles.cardSubtitle, {color: colors.secondaryText}]}>
+                {weekJourney.attemptsThisWeek === 0
+                  ? 'Finish a test, then share your progress.'
+                  : weekJourney.headlineSkill &&
+                      weekJourney.headlineDeltaPoints != null &&
+                      weekJourney.headlineDeltaPoints !== 0
+                    ? `${weekJourney.attemptsThisWeek} tests · ${weekJourney.headlineSkill.replace('-', ' ')} ${weekJourney.headlineDeltaPoints > 0 ? '+' : ''}${weekJourney.headlineDeltaPoints}% vs last week · tap to share`
+                    : `${weekJourney.attemptsThisWeek} tests · avg ${weekJourney.avgPercent != null ? Math.round(weekJourney.avgPercent * 100) : '—'}% · tap to share`}
+              </Text>
+            </View>
+          </PressScale>
         </FadeIn>
 
         {paused ? (

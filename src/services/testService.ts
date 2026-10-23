@@ -1094,6 +1094,128 @@ export function findQuestionById(id: string): TestQuestion | undefined {
   return undefined;
 }
 
+export type WeeklyJourneySummary = {
+  attemptsThisWeek: number;
+  avgPercent: number | null;
+  prevWeekAvgPercent: number | null;
+  overallDeltaPoints: number | null;
+  skillDeltas: Array<{skill: TestSkill; deltaPoints: number}>;
+  headlineSkill: TestSkill | null;
+  headlineDeltaPoints: number | null;
+  streakDays: number;
+  shareMessage: string;
+};
+
+function averagePercent(attempts: TestAttempt[]): number | null {
+  const scored = attempts.filter(a => a.maxScore > 0);
+  if (scored.length === 0) {
+    return null;
+  }
+  const sum = scored.reduce((acc, a) => acc + a.score / a.maxScore, 0);
+  return sum / scored.length;
+}
+
+function skillAverages(
+  attempts: TestAttempt[],
+): Partial<Record<TestSkill, number>> {
+  const totals: Partial<Record<TestSkill, {earned: number; max: number}>> = {};
+  attempts.forEach(attempt => {
+    (attempt.skillBreakdown ?? []).forEach(row => {
+      const cur = totals[row.skill] ?? {earned: 0, max: 0};
+      cur.earned += row.earned;
+      cur.max += row.max;
+      totals[row.skill] = cur;
+    });
+  });
+  const out: Partial<Record<TestSkill, number>> = {};
+  (Object.keys(totals) as TestSkill[]).forEach(skill => {
+    const row = totals[skill];
+    if (row && row.max > 0) {
+      out[skill] = row.earned / row.max;
+    }
+  });
+  return out;
+}
+
+/** Build a shareable weekly progress blurb from stored attempts. */
+export function buildWeeklyJourneySummary(
+  attempts: TestAttempt[],
+  now = Date.now(),
+): WeeklyJourneySummary {
+  const weekMs = 7 * 24 * 60 * 60 * 1000;
+  const thisWeek = attempts.filter(a => now - a.createdAt <= weekMs);
+  const prevWeek = attempts.filter(
+    a => now - a.createdAt > weekMs && now - a.createdAt <= weekMs * 2,
+  );
+
+  const avgPercent = averagePercent(thisWeek);
+  const prevWeekAvgPercent = averagePercent(prevWeek);
+  const overallDeltaPoints =
+    avgPercent != null && prevWeekAvgPercent != null
+      ? Math.round((avgPercent - prevWeekAvgPercent) * 100)
+      : null;
+
+  const thisSkills = skillAverages(thisWeek);
+  const prevSkills = skillAverages(prevWeek);
+  const skillDeltas = (Object.keys(thisSkills) as TestSkill[])
+    .map(skill => {
+      const cur = thisSkills[skill] ?? 0;
+      const prev = prevSkills[skill];
+      if (prev == null) {
+        return null;
+      }
+      return {
+        skill,
+        deltaPoints: Math.round((cur - prev) * 100),
+      };
+    })
+    .filter((row): row is {skill: TestSkill; deltaPoints: number} =>
+      Boolean(row),
+    )
+    .sort((a, b) => b.deltaPoints - a.deltaPoints);
+
+  const headline = skillDeltas[0] ?? null;
+  const streakDays = computeStreakDays(attempts);
+
+  const lines: string[] = ['My SayItBetter week:'];
+  if (thisWeek.length === 0) {
+    lines.push('No skill tests yet this week — time for a Quick check.');
+  } else {
+    lines.push(
+      `• ${thisWeek.length} test${thisWeek.length === 1 ? '' : 's'} completed`,
+    );
+    if (avgPercent != null) {
+      lines.push(`• Average score ${Math.round(avgPercent * 100)}%`);
+    }
+    if (overallDeltaPoints != null && overallDeltaPoints !== 0) {
+      const sign = overallDeltaPoints > 0 ? '+' : '';
+      lines.push(`• Overall ${sign}${overallDeltaPoints} pts vs last week`);
+    }
+    if (headline && headline.deltaPoints !== 0) {
+      const sign = headline.deltaPoints > 0 ? '+' : '';
+      lines.push(
+        `• ${headline.skill.replace('-', ' ')} ${sign}${headline.deltaPoints}%`,
+      );
+    }
+    if (streakDays > 0) {
+      lines.push(`• ${streakDays}-day practice streak`);
+    }
+  }
+  lines.push('Practice English on-device with SayItBetter.');
+
+  return {
+    attemptsThisWeek: thisWeek.length,
+    avgPercent,
+    prevWeekAvgPercent,
+    overallDeltaPoints,
+    skillDeltas,
+    headlineSkill: headline?.skill ?? null,
+    headlineDeltaPoints: headline?.deltaPoints ?? null,
+    streakDays,
+    shareMessage: lines.join('\n'),
+  };
+}
+
 export function exportAttemptsCsv(attempts: TestAttempt[]): string {
   const header =
     'id,packId,packTitle,score,maxScore,percent,createdAt,timed,mcqOnly,isDaily,isPlacement,weakSkills';

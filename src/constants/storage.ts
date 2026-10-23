@@ -12,6 +12,8 @@ export const STORAGE_KEYS = {
   testPausedSession: 'sayitbetter_test_paused',
   testDailyCompleted: 'sayitbetter_test_daily_completed',
   testPlacementDone: 'sayitbetter_test_placement_done',
+  spacedReviewQueue: 'sayitbetter_spaced_review',
+  situationScores: 'sayitbetter_situation_scores',
 } as const;
 
 export const APP_NAME = 'SayItBetter';
