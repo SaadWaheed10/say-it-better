@@ -1,0 +1,1 @@
+export {ScoreTrendChart} from './ScoreTrendChart';

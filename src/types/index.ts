@@ -1,3 +1,5 @@
+import type {NavigatorScreenParams} from '@react-navigation/native';
+
 export type ToneId =
   | 'professional'
   | 'friendly'
@@ -80,6 +82,109 @@ export type PracticePrompt = {
   tone: ToneId;
 };
 
+export type TestSkill =
+  | 'grammar'
+  | 'word-choice'
+  | 'clarity'
+  | 'tone'
+  | 'travel'
+  | 'interview';
+
+export type TestDifficulty = 'easy' | 'medium';
+
+export type McqQuestion = {
+  id: string;
+  skill: TestSkill;
+  /** Defaults to medium when omitted */
+  difficulty?: TestDifficulty;
+  prompt: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+};
+
+export type WrittenQuestion = {
+  id: string;
+  skill: TestSkill;
+  difficulty?: TestDifficulty;
+  prompt: string;
+  rough: string;
+  hint: string;
+  tone: ToneId;
+};
+
+export type TestQuestion =
+  | ({kind: 'mcq'} & McqQuestion)
+  | ({kind: 'written'} & WrittenQuestion);
+
+export type TestPack = {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  totalQuestions: number;
+  mcqCount: number;
+  writtenCount: number;
+  skillFilter?: TestSkill[];
+  difficulty?: TestDifficulty | 'all';
+  timedSeconds?: number;
+  accent: 'teal' | 'amber' | 'rose';
+};
+
+export type TestAnswerRecord = {
+  questionId: string;
+  kind: 'mcq' | 'written';
+  skill: TestSkill;
+  earned: number;
+  max: number;
+  userMcqIndex?: number;
+  userWritten?: string;
+  modelAnswer?: string;
+  explanation?: string;
+  correct?: boolean;
+};
+
+export type TestAttempt = {
+  id: string;
+  packId: string;
+  packTitle: string;
+  score: number;
+  maxScore: number;
+  answers: TestAnswerRecord[];
+  weakSkills: TestSkill[];
+  suggestions: string[];
+  questionIds: string[];
+  createdAt: number;
+  timed?: boolean;
+  mcqOnly?: boolean;
+};
+
+export type TestBadgeId =
+  | 'first-test'
+  | 'streak-3'
+  | 'streak-7'
+  | 'perfect-10'
+  | 'grammar-i'
+  | 'grammar-ii'
+  | 'workplace-pro'
+  | 'comeback';
+
+export type TestBadge = {
+  id: TestBadgeId;
+  title: string;
+  description: string;
+  unlockedAt?: number;
+};
+
+export type TestProgressSnapshot = {
+  attempts: TestAttempt[];
+  streakDays: number;
+  bestByPack: Record<string, number>;
+  badges: TestBadge[];
+  todayDone: boolean;
+  recommendedPackId: string;
+};
+
 export type AppSettings = {
   defaultTone: ToneId;
   themePreference: ThemePreference;
@@ -88,10 +193,18 @@ export type AppSettings = {
   improveTipDismissed?: boolean;
 };
 
+export type MainTabParamList = {
+  Home: undefined;
+  Templates: undefined;
+  Tests: undefined;
+  History: undefined;
+  Settings: undefined;
+};
+
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
-  MainTabs: undefined;
+  MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   ImproveMessage:
     | {
         tone?: ToneId;
@@ -110,13 +223,14 @@ export type RootStackParamList = {
   Practice: undefined;
   Library: undefined;
   About: undefined;
-};
-
-export type MainTabParamList = {
-  Home: undefined;
-  Templates: undefined;
-  History: undefined;
-  Settings: undefined;
+  TestRunner: {
+    packId: string;
+    timed?: boolean;
+    mcqOnly?: boolean;
+    difficulty?: TestDifficulty | 'all';
+    mistakeQuestionIds?: string[];
+  };
+  TestResults: {attemptId: string};
 };
 
 export type OnboardingStackParamList = {

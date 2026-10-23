@@ -5,6 +5,10 @@ export const STORAGE_KEYS = {
   library: 'sayitbetter_library',
   modelPath: 'sayitbetter_model_path',
   improveTipDismissed: 'sayitbetter_improve_tip_dismissed',
+  testAttempts: 'sayitbetter_test_attempts',
+  testRecentQuestionIds: 'sayitbetter_test_recent_qids',
+  testBadges: 'sayitbetter_test_badges',
+  testMistakeIds: 'sayitbetter_test_mistake_ids',
 } as const;
 
 export const APP_NAME = 'SayItBetter';

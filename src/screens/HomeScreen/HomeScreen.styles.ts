@@ -118,6 +118,11 @@ export function useHomeScreenStyles() {
       flexDirection: 'row' as const,
       gap: rp(12),
     },
+    toolsRowSpaced: {
+      flexDirection: 'row' as const,
+      gap: rp(12),
+      marginTop: rm(12),
+    },
     toolCard: {
       flex: 1,
       borderWidth: 1,

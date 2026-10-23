@@ -196,6 +196,24 @@ export function HomeScreen() {
           </Text>
           <View style={styles.toolsRow}>
             <PressScale
+              onPress={() =>
+                navigation.navigate('MainTabs', {screen: 'Tests'})
+              }
+              style={[
+                styles.toolCard,
+                {
+                  backgroundColor: colors.surfaceSolid,
+                  borderColor: `${colors.primaryAccent}44`,
+                },
+              ]}>
+              <Text style={[styles.toolTitle, {color: colors.primaryText}]}>
+                Tests
+              </Text>
+              <Text style={[styles.toolCopy, {color: colors.secondaryText}]}>
+                Random MCQ + written · get a score
+              </Text>
+            </PressScale>
+            <PressScale
               onPress={() => navigation.navigate('Practice')}
               style={[
                 styles.toolCard,
@@ -211,6 +229,8 @@ export function HomeScreen() {
                 Rewrite rough phrases and compare
               </Text>
             </PressScale>
+          </View>
+          <View style={styles.toolsRowSpaced}>
             <PressScale
               onPress={() => navigation.navigate('Library')}
               style={[

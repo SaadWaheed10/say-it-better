@@ -40,6 +40,32 @@ function TabIcon({
     );
   }
 
+  if (name === 'Tests') {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24">
+        <Path
+          d="M8 4 h10 a2 2 0 0 1 2 2 v14 a2 2 0 0 1-2 2 H8 a2 2 0 0 1-2-2 V6 a2 2 0 0 1 2-2 Z"
+          stroke={color}
+          strokeWidth={stroke}
+          fill="none"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M10 9 h8 M10 13 h8 M10 17 h5"
+          stroke={color}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+        />
+        <Path
+          d="M6 8 h-1.5 M6 12 h-1.5 M6 16 h-1.5"
+          stroke={color}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+        />
+      </Svg>
+    );
+  }
+
   if (name === 'History') {
     return (
       <Svg width={size} height={size} viewBox="0 0 24 24">

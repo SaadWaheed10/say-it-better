@@ -6,6 +6,7 @@ import {HistoryScreen} from '../screens/HistoryScreen';
 import {HomeScreen} from '../screens/HomeScreen';
 import {SettingsScreen} from '../screens/SettingsScreen';
 import {TemplatesScreen} from '../screens/TemplatesScreen';
+import {TestsHubScreen} from '../screens/TestsHubScreen';
 import {MainTabParamList} from '../types';
 import {rp} from '../theme/useScaledStyles';
 import {
@@ -46,6 +47,7 @@ export function MainTabNavigator() {
         component={TemplatesScreen}
         options={{title: 'Situations'}}
       />
+      <Tab.Screen name="Tests" component={TestsHubScreen} />
       <Tab.Screen name="History" component={HistoryScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
