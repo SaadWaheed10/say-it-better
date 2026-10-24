@@ -109,6 +109,11 @@ export async function signUpWithEmail(
     throw error;
   }
   const needsEmailConfirm = Boolean(data.user) && !data.session;
+  if (data.session) {
+    void import('./syncProgressService')
+      .then(({syncAllProgress}) => syncAllProgress())
+      .catch(() => undefined);
+  }
   return {
     user: toAuthUser(data.user),
     needsEmailConfirm,
@@ -135,6 +140,9 @@ export async function signInWithEmail(
   if (!user) {
     throw new Error('Sign in succeeded but no user was returned.');
   }
+  void import('./syncProgressService')
+    .then(({syncAllProgress}) => syncAllProgress())
+    .catch(() => undefined);
   return user;
 }
 
@@ -158,13 +166,23 @@ export function subscribeAuth(
     return () => undefined;
   }
 
-  const {data} = supabase.auth.onAuthStateChange((_event, session) => {
-    listener(toAuthUser(session?.user ?? null));
+  // Restore from AsyncStorage first, then keep listening for changes.
+  void supabase.auth.getSession().then(({data}) => {
+    listener(toAuthUser(data.session?.user ?? null));
   });
 
-  getCurrentUser()
-    .then(listener)
-    .catch(() => listener(null));
+  const {data} = supabase.auth.onAuthStateChange((event, session) => {
+    // Ignore noisy token refreshes for UI; still update user on sign in/out/init.
+    if (
+      event === 'INITIAL_SESSION' ||
+      event === 'SIGNED_IN' ||
+      event === 'SIGNED_OUT' ||
+      event === 'USER_UPDATED' ||
+      event === 'TOKEN_REFRESHED'
+    ) {
+      listener(toAuthUser(session?.user ?? null));
+    }
+  });
 
   return () => {
     data.subscription.unsubscribe();

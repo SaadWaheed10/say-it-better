@@ -4,7 +4,8 @@ export function useSignInScreenStyles() {
   return useScaledStyles(() => ({
     safe: {flex: 1},
     body: {flex: 1, paddingHorizontal: rp(20)},
-    scrollContent: {paddingBottom: rp(40), flexGrow: 1},
+    flex: {flex: 1},
+    scrollContent: {paddingBottom: rp(80)},
     hero: {
       alignItems: 'center' as const,
       marginBottom: rm(20),

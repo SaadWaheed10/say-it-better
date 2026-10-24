@@ -1,22 +1,17 @@
 import React, {useState} from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import {Pressable, Text, TextInput, View} from 'react-native';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import LinearGradient from 'react-native-linear-gradient';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppButton} from '../../components/AppButton';
 import {BrandLogo} from '../../components/BrandLogo';
 import {FadeIn} from '../../components/FadeIn';
+import {PasswordInput} from '../../components/PasswordInput';
 import {ScreenBackdrop} from '../../components/ScreenBackdrop';
 import {ScreenHeader} from '../../components/ScreenHeader';
+import {useAuth} from '../../hooks/useAuth';
 import {useAppTheme} from '../../hooks/useAppTheme';
 import {signInWithEmail} from '../../services/authService';
 import {hapticSuccess} from '../../services/hapticService';
@@ -26,6 +21,7 @@ import {useSignInScreenStyles} from './SignInScreen.styles';
 
 export function SignInScreen() {
   const {colors} = useAppTheme();
+  const {refresh: refreshAuth} = useAuth();
   const styles = useSignInScreenStyles();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -57,6 +53,7 @@ export function SignInScreen() {
     setBusy(true);
     try {
       await signInWithEmail(email, password);
+      await refreshAuth();
       hapticSuccess();
       await finishAfterAuth();
     } catch (e) {
@@ -71,14 +68,19 @@ export function SignInScreen() {
       style={[styles.safe, {backgroundColor: colors.canvas}]}
       edges={['top', 'bottom']}>
       <ScreenBackdrop variant={fromOnboarding ? 'onboarding' : 'focus'} />
-      <KeyboardAvoidingView
-        style={styles.body}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <View style={styles.body}>
         <ScreenHeader title="Sign in" onBack={() => navigation.goBack()} />
-        <ScrollView
+        <KeyboardAwareScrollView
+          style={styles.flex}
           contentContainerStyle={styles.scrollContent}
+          enableOnAndroid
+          enableAutomaticScroll
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
+          keyboardOpeningTime={0}
+          extraScrollHeight={32}
+          extraHeight={140}
+          showsVerticalScrollIndicator={false}
+          enableResetScrollToCoords={false}>
           <FadeIn style={styles.hero}>
             <BrandLogo size={64} />
             <Text style={[styles.brand, {color: colors.primaryText}]}>
@@ -140,22 +142,11 @@ export function SignInScreen() {
               <Text style={[styles.label, {color: colors.primaryText}]}>
                 Password
               </Text>
-              <TextInput
+              <PasswordInput
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
                 textContentType="password"
                 autoComplete="password"
-                placeholder="••••••••"
-                placeholderTextColor={colors.secondaryText}
-                style={[
-                  styles.input,
-                  {
-                    color: colors.primaryText,
-                    backgroundColor: colors.surfaceMuted,
-                    borderColor: colors.borderSoft,
-                  },
-                ]}
                 accessibilityLabel="Password"
               />
 
@@ -191,8 +182,8 @@ export function SignInScreen() {
               </Text>
             </Pressable>
           </FadeIn>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
+      </View>
     </SafeAreaView>
   );
 }

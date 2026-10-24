@@ -71,15 +71,17 @@ export async function saveSettings(
   patch: Partial<AppSettings>,
 ): Promise<AppSettings> {
   const current = await getSettings();
-  const next = normalizeSettings({...current, ...patch});
+  const merged: Partial<AppSettings> = {...current, ...patch};
+  // Sticky: once onboarding is done on this device, sync must not undo it.
+  if (current.onboardingCompleted) {
+    merged.onboardingCompleted = true;
+  }
+  const next = normalizeSettings(merged);
 
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(next));
-    if (typeof patch.onboardingCompleted === 'boolean') {
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.onboardingCompleted,
-        patch.onboardingCompleted ? 'true' : 'false',
-      );
+    if (next.onboardingCompleted) {
+      await AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, 'true');
     }
   } catch {
     // Persist failures should not crash the UI.
@@ -105,6 +107,10 @@ export async function markOnboardingCompleted(): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, 'true');
     await saveSettings({onboardingCompleted: true});
+    // Keep cloud in sync so a later pull cannot reset this to false.
+    void import('./syncProgressService')
+      .then(({pushUserSettings}) => pushUserSettings())
+      .catch(() => undefined);
   } catch {
     // Ignore storage failures; navigation can still proceed.
   }

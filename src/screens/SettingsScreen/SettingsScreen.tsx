@@ -11,6 +11,7 @@ import {PressScale} from '../../components/PressScale';
 import {ScreenBackdrop} from '../../components/ScreenBackdrop';
 import {ToneSelector} from '../../components/ToneSelector';
 import {APP_NAME, APP_VERSION} from '../../constants/storage';
+import {useAuth} from '../../hooks/useAuth';
 import {useAppTheme} from '../../hooks/useAppTheme';
 import {
   getModelStatus,
@@ -18,15 +19,13 @@ import {
   subscribeModelState,
 } from '../../services/aiService';
 import {
-  AuthUser,
   checkSupabaseConnection,
-  signOut,
-  subscribeAuth,
   SupabaseConnectionStatus,
 } from '../../services/authService';
 import {clearHistory} from '../../services/historyService';
 import {syncDailyTestReminder} from '../../services/notificationService';
 import {getSettings, saveSettings} from '../../services/settingsService';
+import {syncAllProgress} from '../../services/syncProgressService';
 import {
   ModelState,
   RootStackParamList,
@@ -56,6 +55,7 @@ export function SettingsScreen() {
     reduceMotion,
     setReduceMotion,
   } = useAppTheme();
+  const {user: authUser, signOut, refresh: refreshAuth} = useAuth();
   const styles = useSettingsScreenStyles();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -63,14 +63,14 @@ export function SettingsScreen() {
   const [dailyTestReminder, setDailyTestReminder] = useState(false);
   const [modelState, setModelState] = useState<ModelState>(getModelStatus());
   const [busy, setBusy] = useState(false);
-  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [supabaseStatus, setSupabaseStatus] =
     useState<SupabaseConnectionStatus>('checking');
   const [supabaseDetail, setSupabaseDetail] = useState('Checking…');
   const [pingBusy, setPingBusy] = useState(false);
+  const [syncBusy, setSyncBusy] = useState(false);
+  const [syncDetail, setSyncDetail] = useState<string | null>(null);
 
   useEffect(() => subscribeModelState(setModelState), []);
-  useEffect(() => subscribeAuth(setAuthUser), []);
 
   const refreshSupabaseStatus = useCallback(async () => {
     setPingBusy(true);
@@ -93,7 +93,8 @@ export function SettingsScreen() {
       });
       setModelState(getModelStatus());
       refreshSupabaseStatus();
-    }, [refreshSupabaseStatus]),
+      void refreshAuth();
+    }, [refreshSupabaseStatus, refreshAuth]),
   );
 
   const onToneChange = async (tone: ToneId) => {
@@ -182,30 +183,62 @@ export function SettingsScreen() {
               accessibilityLabel="Check Supabase connection"
             />
             {authUser ? (
-              <AppButton
-                label="Sign out"
-                variant="ghost"
-                onPress={() => {
-                  showAppAlert('Sign out?', 'You can keep using the app locally.', [
-                    {text: 'Cancel', style: 'cancel'},
-                    {
-                      text: 'Sign out',
-                      style: 'destructive',
-                      onPress: async () => {
-                        try {
-                          await signOut();
-                        } catch (e) {
-                          showAppAlert(
-                            'Sign out failed',
-                            e instanceof Error ? e.message : 'Try again.',
-                          );
-                        }
-                      },
-                    },
-                  ]);
-                }}
-                style={styles.retryBtn}
-              />
+              <>
+                {syncDetail ? (
+                  <Text
+                    style={[
+                      styles.modelMetaTight,
+                      {color: colors.secondaryText},
+                    ]}>
+                    {syncDetail}
+                  </Text>
+                ) : null}
+                <AppButton
+                  label={syncBusy ? 'Syncing…' : 'Sync progress now'}
+                  variant="secondary"
+                  loading={syncBusy}
+                  onPress={async () => {
+                    setSyncBusy(true);
+                    try {
+                      const result = await syncAllProgress();
+                      setSyncDetail(result.detail);
+                    } finally {
+                      setSyncBusy(false);
+                    }
+                  }}
+                  style={styles.retryBtn}
+                  accessibilityLabel="Sync progress to Supabase"
+                />
+                <AppButton
+                  label="Sign out"
+                  variant="ghost"
+                  onPress={() => {
+                    showAppAlert(
+                      'Sign out?',
+                      'You can keep using the app locally.',
+                      [
+                        {text: 'Cancel', style: 'cancel'},
+                        {
+                          text: 'Sign out',
+                          style: 'destructive',
+                          onPress: async () => {
+                            try {
+                              await signOut();
+                              setSyncDetail(null);
+                            } catch (e) {
+                              showAppAlert(
+                                'Sign out failed',
+                                e instanceof Error ? e.message : 'Try again.',
+                              );
+                            }
+                          },
+                        },
+                      ],
+                    );
+                  }}
+                  style={styles.retryBtn}
+                />
+              </>
             ) : (
               <>
                 <AppButton

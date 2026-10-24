@@ -1045,6 +1045,12 @@ export async function saveTestAttempt(
     const level = placementLevelFromScore(attempt.score, attempt.maxScore);
     await markPlacementDone(level);
   }
+
+  // Cloud sync when signed in (lazy import avoids circular deps).
+  void import('./syncProgressService')
+    .then(({queuePushTestAttempt}) => queuePushTestAttempt(attempt))
+    .catch(() => undefined);
+
   return next;
 }
 
